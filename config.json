@@ -1,0 +1,15 @@
+{
+        "default_server": "0.0.0.0",
+		"default_port": 8088,
+        "gateway_server": "0.0.0.0",
+		"gateway_port": 8088,
+        "user_server": "0.0.0.0",
+		"user_port": 8088,
+        "engine_server": "0.0.0.0",
+		"engine_port": 8088,
+        "log": {
+                "dir": "./log",
+                "level": "debug"
+        },
+		"roles": ["gateway", "user"]
+}
