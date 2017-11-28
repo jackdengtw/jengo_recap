@@ -11,14 +11,14 @@ import (
 	"github.com/qetuantuan/jengo_recap/config"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/handler"
+	"github.com/qetuantuan/jengo_recap/queue"
 	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/service"
+	"github.com/qetuantuan/jengo_recap/worker"
 )
 
 func main() {
 	defer glog.Flush()
-
-	mdHost := "127.0.0.1"
 
 	// get config file
 	flag.Parse()
@@ -53,7 +53,7 @@ func main() {
 
 	githubScm := scm.NewGithubScm(cfg.GatewayHookUrl)
 
-	ud := &dao.UserMongoDao{Url: mdHost}
+	ud := &dao.UserMongoDao{Url: cfg.MongoHost}
 	if err := ud.Init(); err != nil {
 		glog.Fatal("init user mongo failed! error:", err)
 		os.Exit(-2)
@@ -71,7 +71,7 @@ func main() {
 	_ = handler.NewGitHubHandler(cfg.EngineServer, cfg.EnginePort)
 
 	// Project API
-	md := &dao.ProjectMongoDao{Url: mdHost}
+	md := &dao.ProjectMongoDao{Url: cfg.MongoHost}
 	err = md.Init()
 	if err != nil {
 		glog.Fatal("init Project Dao failed! error:", err)
@@ -103,7 +103,103 @@ func main() {
 	_ = handler.NewPartialUpdateRunHandler(bService)
 	_ = handler.NewInsertRunHandler(bService)
 
+	// init queue
+	q := queue.NewNativeTaskQueue()
+	q.Start()
+
+	// Engine API
+	rd := &dao.RunDao{Url: cfg.MongoHost}
+	err = rd.Init()
+	if err != nil {
+		glog.Fatal("init Engine Dao failed! error:", err)
+		os.Exit(-2)
+	}
+	eService := &service.EngineRunService{
+		client.NewProjectStoreClient(
+			cfg.ProjectServer,
+			cfg.ProjectPort,
+		),
+		rd,
+		q,
+	}
+
+	_ = handler.NewCreateRunHandler(eService)
+	_ = handler.NewDescribeRunsHandler(eService)
+	_ = handler.NewDescribeRunHandler(eService)
+
+	rService := &service.RunLogService{
+		Md: md,
+	}
+	_ = handler.NewGetRunLogHandler(rService)
+
 	router := NewRouter(handler.Handlers)
+
+	// Workers
+
+	// Start Start Worker
+	go func() {
+		w := worker.Start{
+			Base: worker.Base{
+				Queue:          q,
+				ListeningTopic: queue.TopicStartGroup1Name,
+				OutputTopic: []string{
+					queue.TopicParseGroup1Name,
+				},
+			},
+			ProjectClient: client.NewProjectStoreClient(
+				cfg.ProjectServer,
+				cfg.ProjectPort,
+			),
+			RunDao: rd,
+		}
+		w.Work()
+	}()
+
+	// Start Parse Worker
+	go func() {
+		w := worker.Parse{
+			Base: worker.Base{
+				Queue:          q,
+				ListeningTopic: queue.TopicParseGroup1Name,
+				OutputTopic: []string{
+					queue.TopicScheduleGroup1Name,
+				},
+			},
+			Pc: client.NewProjectStoreClient(
+				cfg.ProjectServer,
+				cfg.ProjectPort,
+			),
+			Uc: client.NewUserStoreClient(
+				cfg.UserServer,
+				cfg.UserPort,
+			),
+			Gc: scm.NewGithubScm(
+				cfg.GatewayHookUrl,
+			),
+		}
+		w.Work()
+	}()
+
+	// Start Finalize Worker
+	go func() {
+		w := worker.Finalize{
+			Base: worker.Base{
+				Queue:          q,
+				ListeningTopic: queue.TopicFinalizeGroup1Name,
+			},
+			ProjectClient: client.NewProjectStoreClient(
+				cfg.ProjectServer,
+				cfg.ProjectPort,
+			),
+			RunDao: rd,
+		}
+		w.Work()
+	}()
+
+	// Start Schedule Worker
+
+	// Start Execute Worker
+	// Register Execute Worker to registry.WorkerRegistry
 
 	glog.Fatal(http.ListenAndServe(
 		fmt.Sprintf("%v:%v", server, port), router))

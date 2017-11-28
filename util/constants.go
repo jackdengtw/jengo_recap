@@ -1,0 +1,19 @@
+package util
+
+const (
+	PROJID_MAXL = 32
+	SCM_MAXL    = 256
+	BRANCH_MAXL = 60
+	USERID_MAXL = 32
+)
+
+const (
+	RUN_STATUS_DONE    = 0
+	RUN_STATUS_RUNNING = 1
+	RUN_STATUS_WAITING = 2
+)
+
+const (
+	PORT_MIN = 0
+	PORT_MAX = 65535
+)

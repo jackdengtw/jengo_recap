@@ -4,12 +4,6 @@ import (
 	"time"
 )
 
-const (
-	RUN_STATE_SUCCESS = "success"
-	RUN_STATE_FAILED  = "failed"
-	RUN_STATE_UNKNOW  = "unknown"
-)
-
 type Run struct {
 	Id         string            `bson:"_id" json:"id"`
 	EventId    string            `json:"event_id"`
@@ -29,6 +23,8 @@ type Run struct {
 	UpdatedAt  *time.Time        `json:"updated_at"`
 	CreatedAt  *time.Time        `json:"created_at"`
 }
+
+type Runs []Run
 
 type PatchRun struct {
 	Id         string            `bson:"_id" json:"id"`

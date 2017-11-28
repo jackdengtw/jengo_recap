@@ -4,13 +4,59 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
+	"strconv"
 
+	"github.com/golang/glog"
 	"github.com/qetuantuan/jengo_recap/model"
+	"github.com/qetuantuan/jengo_recap/util"
+)
+
+const (
+	WEBHOOKNAME              string = "web"
+	HOOK_EXIST_ERROR_MESSAGE string = "Hook already exists on this repository"
+
+	CONTENT_BASE  = "raw.githubusercontent.com"
+	YML_FILE_NAME = ".travis.yml"
+
+	hookConfFormatString = "{\"name\": \"%s\", " +
+		"\"active\": true, " +
+		"\"events\": [\"push\"], " +
+		"\"config\": {\"url\": \"%s\",\"content_type\": \"json\"}}"
+
+	hookEditConfFormatString = "{\"name\": \"%s\", " +
+		"\"active\": true, " +
+		"\"events\": [\"push\"], " +
+		"\"config\": {\"url\": \"%s\",\"content_type\": \"json\"}, " +
+		"\"add_events\": [\"\"], " +
+		"\"remove_events\": [\"\"]}"
+)
+
+type GithubError struct {
+	Resource string
+	Code     string
+	Message  string
+}
+type GithubHookError struct {
+	Message string
+	Errors  []GithubError
+}
+
+var (
+	HookExistError    = errors.New("hook already exists")
+	HookNonExistError = errors.New("hook does not exists")
 )
 
 type GithubScm struct {
 	baseScm
 	scm string
+}
+
+func NewGithubScm(hookUrl string) *GithubScm {
+	gs := GithubScm{scm: "github"}
+	gs.ApiLink = "https://api.github.com"
+	gs.HookURI = hookUrl
+	return &gs
 }
 
 func (gs *GithubScm) GetGithubUser(token string) (user model.GithubUser, err error) {
@@ -24,44 +70,9 @@ func (gs *GithubScm) GetGithubUser(token string) (user model.GithubUser, err err
 	return
 }
 
-type GithubError struct {
-	Resource string
-	Code     string
-	Message  string
-}
-type GithubHookError struct {
-	Message string
-	Errors  []GithubError
-}
-
-const WEBHOOKNAME string = "web"
-const HOOK_EXIST_ERROR_MESSAGE string = "Hook already exists on this repository"
-
-var HookExistError = errors.New("hook already exists")
-var HookNonExistError = errors.New("hook does not exists")
-
 func (gs *GithubScm) SetGatewayHookUrl(gatewayHookUrl string) {
 	gs.HookURI = gatewayHookUrl
 }
-
-func NewGithubScm(hookUrl string) *GithubScm {
-	gs := GithubScm{scm: "github"}
-	gs.ApiLink = "https://api.github.com"
-	gs.HookURI = hookUrl
-	return &gs
-}
-
-const hookConfFormatString = "{\"name\": \"%s\", " +
-	"\"active\": true, " +
-	"\"events\": [\"push\"], " +
-	"\"config\": {\"url\": \"%s\",\"content_type\": \"json\"}}"
-
-const hookEditConfFormatString = "{\"name\": \"%s\", " +
-	"\"active\": true, " +
-	"\"events\": [\"push\"], " +
-	"\"config\": {\"url\": \"%s\",\"content_type\": \"json\"}, " +
-	"\"add_events\": [\"\"], " +
-	"\"remove_events\": [\"\"]}"
 
 func (gs *GithubScm) SetHook(projectName string) (hook model.GithubHook, err error) {
 	hookConf := fmt.Sprintf(hookConfFormatString, WEBHOOKNAME, gs.HookURI)
@@ -166,5 +177,32 @@ func (gs *GithubScm) GetProjectList() (projects []model.Project, err error) {
 	for i := range githubProjects {
 		githubProjects[i].CopyTo(&projects[i])
 	}
+	return
+}
+
+func (c *GithubScm) GetYmlContent(repo string, branch string) (content []byte, err error) {
+	var resp *http.Response
+	// compose url like: https://github.com/psmooth/helloworld/blob/master/.travis.yml
+	url := fmt.Sprintf("https://%s/%s/%s/%s", CONTENT_BASE, repo, branch, YML_FILE_NAME)
+	glog.Infof("get the url as url(%s)", url)
+
+	headers := map[string]string{
+		"Authorization": "token " + c.Token,
+		"Time-Zone":     "GMT",
+	}
+
+	resp, content, err = util.GetHttpResp(url, headers)
+	if err != nil {
+		glog.Errorf("failed to GetHttpResp: url(%s), headers(%v), err(%v)", url, headers, err)
+		content = ([]byte)("")
+		return
+	}
+	glog.Infof("call GetHttpResp returned: resp(%v)", resp)
+	if resp.StatusCode != http.StatusOK {
+		err = errors.New("response is " + strconv.Itoa(resp.StatusCode))
+		content = ([]byte)("")
+		return
+	}
+
 	return
 }

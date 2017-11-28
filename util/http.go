@@ -17,6 +17,10 @@ func PutHttpRespWithData(req string, headers map[string]string, data []byte) (*h
 	return httpRespWithData("PUT", req, headers, data)
 }
 
+func PatchHttpRespWithData(req string, headers map[string]string, data []byte) (*http.Response, []byte, error) {
+	return httpRespWithData("PATCH", req, headers, data)
+}
+
 func GetHttpResp(req string, headers map[string]string) (*http.Response, []byte, error) {
 	return httpResp("GET", req, headers)
 }
@@ -43,7 +47,7 @@ func httpRespWithData(method string, req string, headers map[string]string, data
 		} else {
 			defer resp.Body.Close()
 			if raw, err := ioutil.ReadAll(resp.Body); err != nil {
-				glog.Errorf("["+method+"HttpRespWithHeaders] ioutils.ReadAll err %v", err)
+				glog.Errorf("["+method+"HttpRespWithHeaders] ioutil.ReadAll err %v", err)
 				return resp, nil, err
 			} else {
 				glog.Info("INFO][" + method + "HttpRespWithHeaders] raw: " + string(raw))

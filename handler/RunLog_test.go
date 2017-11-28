@@ -29,6 +29,11 @@ func (u *mockRunLogService) GetLog(id string) (log api.RunLog, err error) {
 	}
 	return
 }
+
+func (u *mockRunLogService) GetRunLog(params *api.GetRunLogParams) (*api.RunLog, error) {
+	return nil, nil
+}
+
 func TestPutLogHandler_PutLog(t *testing.T) {
 	testPutLog(
 		t,

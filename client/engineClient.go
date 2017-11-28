@@ -10,9 +10,9 @@ import (
 )
 
 const (
-	createRun    = "/v0.1/project/%s/run"
-	describeRuns = "/v0.1/runs?project_id=%s&run_id=%s&user_id=%s"
-	getRunLog    = "/v0.1/run/%s/run_log?offset=%d&limit=%d"
+	createEngineRun = "/v0.1/project/%s/run"
+	describeRuns    = "/v0.1/runs?project_id=%s&run_id=%s&user_id=%s"
+	getRunLog       = "/v0.1/run/%s/run_log?offset=%d&limit=%d"
 )
 
 type EngineClient struct {
@@ -26,7 +26,7 @@ func NewEngineClient(server string, port int) *EngineClient {
 }
 
 func (p *EngineClient) CreateRun(run *api.EngineCreateRunParams) (*http.Response, []byte, error) {
-	url := "http://" + p.HostPort + fmt.Sprintf(createRun, run.ProjectId)
+	url := "http://" + p.HostPort + fmt.Sprintf(createEngineRun, run.ProjectId)
 	runBytes, err := json.Marshal(run)
 	if err != nil {
 		return nil, nil, err

@@ -9,8 +9,10 @@
 		"engine_port": 8088,
         "project_server": "0.0.0.0",
 		"project_port": 8088,
+        "engine_server": "0.0.0.0",
+		"engine_port": 8088,
     	"mongo_host": "127.0.0.1",
-    	"gateway_hook_url": "http://47.93.38.8:8082/github_webhook",
+    	"gateway_hook_url": "http://47.93.38.8:8088/github_webhook",
         "log": {
                 "dir": "./log",
                 "level": "debug"

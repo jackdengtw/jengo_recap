@@ -13,11 +13,13 @@ import (
 )
 
 type Scm interface {
-	Init(string)
-	SetHook(string) error
-	EditHook(string) error
+	// Init(string)
+	SetHook(string) (model.GithubHook, error)
+	EditHook(string) (model.GithubHook, error)
 	DeleteHook(string) error
 	GetProjectList() ([]model.Project, error)
+	SetToken(string)
+	GetYmlContent(repo string, branch string) (content []byte, err error)
 }
 
 type baseScm struct {
@@ -63,4 +65,8 @@ func (bs *baseScm) httpRequest(method string, uri string, data string, header ma
 		return
 	}
 	return
+}
+
+func (bs *baseScm) SetToken(token string) {
+	bs.Token = token
 }
