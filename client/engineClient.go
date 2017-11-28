@@ -19,6 +19,12 @@ type EngineClient struct {
 	HostPort string
 }
 
+func NewEngineClient(server string, port int) *EngineClient {
+	return &EngineClient{
+		HostPort: util.GetHostPort4Client(server, port),
+	}
+}
+
 func (p *EngineClient) CreateRun(run *api.EngineCreateRunParams) (*http.Response, []byte, error) {
 	url := "http://" + p.HostPort + fmt.Sprintf(createRun, run.ProjectId)
 	runBytes, err := json.Marshal(run)

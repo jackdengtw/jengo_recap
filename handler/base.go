@@ -10,6 +10,7 @@ type HandlerReader interface {
 	Name() string
 	Method() string
 	Pattern() string
+	Query() string
 	HandlerFunc() http.HandlerFunc
 }
 
@@ -17,6 +18,7 @@ type BaseHandler struct {
 	name        string
 	method      string
 	pattern     string
+	query       string
 	handlerFunc http.HandlerFunc
 }
 
@@ -30,6 +32,9 @@ func (h *BaseHandler) Method() string {
 
 func (h *BaseHandler) Pattern() string {
 	return h.pattern
+}
+func (h *BaseHandler) Query() string {
+	return h.query
 }
 
 func (h *BaseHandler) HandlerFunc() http.HandlerFunc {

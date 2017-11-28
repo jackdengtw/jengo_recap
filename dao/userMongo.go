@@ -14,10 +14,10 @@ const (
 	AUTH_COLUMN = "auths"
 )
 
-var dbName string = "users"
+var userDbName string = "users"
 var userCol02 string = "user02"
 
-type MongoDao struct {
+type UserMongoDao struct {
 	Url      string
 	GSession *mgo.Session
 }
@@ -33,7 +33,7 @@ func (m MgoLog) Output(calldepth int, s string) error {
 	return nil
 }
 
-func (md *MongoDao) Init() (err error) {
+func (md *UserMongoDao) Init() (err error) {
 	md.GSession, err = mgo.Dial(md.Url)
 	var l MgoLog
 	mgo.SetLogger(l)
@@ -43,10 +43,10 @@ func (md *MongoDao) Init() (err error) {
 	return err
 }
 
-func (md *MongoDao) GetUser(userId string) (user model.User, err error) {
+func (md *UserMongoDao) GetUser(userId string) (user model.User, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
-	uc := session.DB(dbName).C(userCol02)
+	uc := session.DB(userDbName).C(userCol02)
 	err = uc.FindId(userId).One(&user)
 	if err != nil {
 		glog.Error("err when GetUser because of :", err)
@@ -54,10 +54,10 @@ func (md *MongoDao) GetUser(userId string) (user model.User, err error) {
 	return
 }
 
-func (md *MongoDao) CreateUser(user *model.User) (err error) {
+func (md *UserMongoDao) CreateUser(user *model.User) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
-	uc := session.DB(dbName).C(userCol02)
+	uc := session.DB(userDbName).C(userCol02)
 	_, err = uc.UpsertId(user.UserId, &user)
 	if err != nil {
 		glog.Error("err when CreateUser because of :", err)
@@ -65,10 +65,10 @@ func (md *MongoDao) CreateUser(user *model.User) (err error) {
 	return
 }
 
-func (md *MongoDao) GetUserByLogin(loginName string, auth string) (user *model.User, err error) {
+func (md *UserMongoDao) GetUserByLogin(loginName string, auth string) (user *model.User, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
-	uc := session.DB(dbName).C(userCol02)
+	uc := session.DB(userDbName).C(userCol02)
 	var users []model.User
 	err = uc.Find(bson.M{
 		"auths.login_name":     loginName,
@@ -91,10 +91,10 @@ func (md *MongoDao) GetUserByLogin(loginName string, auth string) (user *model.U
 	return &users[0], nil
 }
 
-func (md *MongoDao) UpdateToken(userId, sourceType, scmId string, token []byte) (err error) {
+func (md *UserMongoDao) UpdateToken(userId, sourceType, scmId string, token []byte) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
-	uc := session.DB(dbName).C(userCol02)
+	uc := session.DB(userDbName).C(userCol02)
 	err = uc.Update(bson.M{"_id": userId, sourceType + ".id": scmId},
 		bson.M{"$set": bson.M{sourceType + ".$.token": token}})
 	return

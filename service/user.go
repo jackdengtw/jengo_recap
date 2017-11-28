@@ -1,8 +1,6 @@
 package service
 
 import (
-	"errors"
-
 	"github.com/golang/glog"
 	"github.com/qetuantuan/jengo_recap/api"
 	"github.com/qetuantuan/jengo_recap/dao"
@@ -23,7 +21,7 @@ type UserServiceInterface interface {
 }
 
 type UserService struct {
-	Md        *dao.MongoDao
+	Md        *dao.UserMongoDao
 	GithubScm *scm.GithubScm
 }
 
@@ -39,17 +37,6 @@ type UserService struct {
  * 2. service logging what happened internals
  */
 
-var (
-	MongoError            error = errors.New("Query Mongo Error")
-	ScmError              error = errors.New("Call Scm Error")
-	EncryptError          error = errors.New("Encrypt token Error")
-	CreateConflictError   error = errors.New("Cannot create the same identity")
-	NotSupportedAuthError error = errors.New("Auth not supported")
-	UserNotFoundError     error = errors.New("User Not found in DB")
-	ScmNotFoundError      error = errors.New("Scm Not found in DB")
-	DataTransformError    error = errors.New("Data transform failed")
-)
-
 func (u *UserService) CreateUser(loginName string, auth string, token string) (userId string, err error) {
 	_, err = u.Md.GetUserByLogin(loginName, auth)
 	if err == nil {
@@ -63,9 +50,6 @@ func (u *UserService) CreateUser(loginName string, auth string, token string) (u
 		return
 	} else {
 		if auth == api.AUTH_SOURCE_GITHUB {
-			if u.GithubScm == nil {
-				u.GithubScm = scm.NewGithubScm()
-			}
 			userScm, err1 := u.GithubScm.GetGithubUser(token)
 			if err1 != nil {
 				glog.Errorf("failed, err when get user from scm", loginName, err1)

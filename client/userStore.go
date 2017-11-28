@@ -23,9 +23,9 @@ type UserStoreClient struct {
 	HostPort string
 }
 
-func NewUserStoreClient(hostPort string) (uc *UserStoreClient) {
+func NewUserStoreClient(host string, port int) (uc *UserStoreClient) {
 	uc = &UserStoreClient{
-		HostPort: hostPort,
+		HostPort: util.GetHostPort4Client(host, port),
 	}
 	return
 }

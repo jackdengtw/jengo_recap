@@ -7,9 +7,11 @@ import (
 	"os"
 
 	"github.com/golang/glog"
+	"github.com/qetuantuan/jengo_recap/client"
 	"github.com/qetuantuan/jengo_recap/config"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/handler"
+	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/service"
 )
 
@@ -41,27 +43,65 @@ func main() {
 	} else if cfg.Roles[0] == "gateway" {
 		server = cfg.GatewayServer
 		port = cfg.GatewayPort
+	} else if cfg.Roles[0] == "project" {
+		server = cfg.ProjectServer
+		port = cfg.ProjectPort
 	} else {
 		glog.Fatal(fmt.Sprintf("Role %v not supported!", cfg.Roles[0]))
 		os.Exit(-1)
 	}
 
-	md := &dao.MongoDao{Url: mdHost}
-	if err := md.Init(); err != nil {
-		glog.Fatal("init mongo failed! error:", err)
-		return
+	githubScm := scm.NewGithubScm(cfg.GatewayHookUrl)
+
+	ud := &dao.UserMongoDao{Url: mdHost}
+	if err := ud.Init(); err != nil {
+		glog.Fatal("init user mongo failed! error:", err)
+		os.Exit(-2)
 	}
-	service := &service.UserService{Md: md}
+	uservice := &service.UserService{Md: ud, GithubScm: githubScm}
 	// NewHandler implicitly register to handler.Handlers
 
 	// User API
-	_ = handler.NewCreateUserHandler(service)
-	_ = handler.NewGetUserHandler(service)
-	_ = handler.NewGetUserByLoginHandler(service)
-	_ = handler.NewUpdateScmTokenHandler(service)
+	_ = handler.NewCreateUserHandler(uservice)
+	_ = handler.NewGetUserHandler(uservice)
+	_ = handler.NewGetUserByLoginHandler(uservice)
+	_ = handler.NewUpdateScmTokenHandler(uservice)
 
 	// Gateway API
 	_ = handler.NewGitHubHandler(cfg.EngineServer, cfg.EnginePort)
+
+	// Project API
+	md := &dao.ProjectMongoDao{Url: mdHost}
+	err = md.Init()
+	if err != nil {
+		glog.Fatal("init Project Dao failed! error:", err)
+		os.Exit(-2)
+	}
+	usClient := client.NewUserStoreClient(cfg.UserServer, cfg.UserPort)
+
+	pService := &service.ProjectService{
+		Md:        md,
+		GithubScm: githubScm,
+		UsClient:  usClient,
+	}
+	_ = handler.NewUpdateProjectHandler(pService)
+	_ = handler.NewSwitchProjectHandler(pService)
+	_ = handler.NewGetProjectHandler(pService)
+	_ = handler.NewGetProjectsHandler(pService)
+
+	runLogService := &service.RunLogService{Md: md}
+	_ = handler.NewPutLogHandler(runLogService)
+	_ = handler.NewGetLogHandler(runLogService)
+
+	bService := &service.RunService{
+		Md:        md,
+		GithubScm: githubScm,
+	}
+	_ = handler.NewGetBuildsByFilterHandler(bService)
+	_ = handler.NewGetBuildsByIdsHandler(bService)
+	_ = handler.NewUpdateRunHandler(bService)
+	_ = handler.NewPartialUpdateRunHandler(bService)
+	_ = handler.NewInsertRunHandler(bService)
 
 	router := NewRouter(handler.Handlers)
 

@@ -26,7 +26,7 @@ var _ = Describe("User", func() {
 					return
 				}
 				service = &UserService{
-					Md: &dao.MongoDao{
+					Md: &dao.UserMongoDao{
 						GSession: session,
 					},
 				}
@@ -90,10 +90,10 @@ var _ = Describe("User", func() {
 				}))
 
 				service = &UserService{
-					Md: &dao.MongoDao{
+					Md: &dao.UserMongoDao{
 						GSession: session,
 					},
-					GithubScm: scm.NewGithubScm(),
+					GithubScm: scm.NewGithubScm("any"),
 				}
 				service.GithubScm.ApiLink = testServer.URL
 

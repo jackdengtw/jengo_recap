@@ -25,6 +25,12 @@ type ConfigEntity struct {
 	EngineServer string `json:"engine_server"`
 	EnginePort   int    `json:"engine_port"`
 
+	ProjectServer string `json:"project_server"`
+	ProjectPort   int    `json:"project_port"`
+
+	MongoHost      string `json:"mongo_host"`
+	GatewayHookUrl string `json:"gateway_hook_url"`
+
 	LogCfg *LogConfigEntity `json:"log"`
 	Roles  []string         `json:"roles"`
 }

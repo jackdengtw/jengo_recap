@@ -2,7 +2,6 @@ package handler
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/qetuantuan/jengo_recap/api"
@@ -21,13 +20,8 @@ type GitHubTrigger struct {
 }
 
 func NewGitHubTrigger(server string, port int) *GitHubTrigger {
-	if server == "0.0.0.0" {
-		server = "127.0.0.1"
-	}
 	return &GitHubTrigger{
-		EngineClient: &client.EngineClient{
-			HostPort: fmt.Sprintf("%v:%v", server, port),
-		},
+		EngineClient: client.NewEngineClient(server, port),
 	}
 }
 func (t *GitHubTrigger) TriggerRun(runReq *api.EngineCreateRunParams) (

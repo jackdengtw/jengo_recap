@@ -1,7 +1,7 @@
 package scm
 
 import (
-	. "github.com/google/go-github/github"
+	"github.com/google/go-github/github"
 )
 
 // PushEventRepoOwner is a basic representation of user/org in a PushEvent payload.
@@ -21,9 +21,9 @@ type GithubPushEventRepository struct {
 	Private         *bool                     `json:"private,omitempty"`
 	Description     *string                   `json:"description,omitempty"`
 	Fork            *bool                     `json:"fork,omitempty"`
-	CreatedAt       *Timestamp                `json:"created_at,omitempty"`
-	PushedAt        *Timestamp                `json:"pushed_at,omitempty"`
-	UpdatedAt       *Timestamp                `json:"updated_at,omitempty"`
+	CreatedAt       *github.Timestamp         `json:"created_at,omitempty"`
+	PushedAt        *github.Timestamp         `json:"pushed_at,omitempty"`
+	UpdatedAt       *github.Timestamp         `json:"updated_at,omitempty"`
 	Homepage        *string                   `json:"homepage,omitempty"`
 	Size            *int                      `json:"size,omitempty"`
 	StargazersCount *int                      `json:"stargazers_count,omitempty"`
@@ -52,13 +52,13 @@ type GithubPushEventRepository struct {
 //
 // GitHub API docs: https://developer.github.com/v3/activity/events/types/#pushevent
 type GithubPushEvent struct {
-	PushID       *int              `json:"push_id,omitempty"`
-	Head         *string           `json:"head,omitempty"`
-	Ref          *string           `json:"ref,omitempty"`
-	Size         *int              `json:"size,omitempty"`
-	Commits      []PushEventCommit `json:"commits,omitempty"`
-	Before       *string           `json:"before,omitempty"`
-	DistinctSize *int              `json:"distinct_size,omitempty"`
+	PushID       *int                     `json:"push_id,omitempty"`
+	Head         *string                  `json:"head,omitempty"`
+	Ref          *string                  `json:"ref,omitempty"`
+	Size         *int                     `json:"size,omitempty"`
+	Commits      []github.PushEventCommit `json:"commits,omitempty"`
+	Before       *string                  `json:"before,omitempty"`
+	DistinctSize *int                     `json:"distinct_size,omitempty"`
 
 	// The following fields are only populated by Webhook events.
 	After        *string                    `json:"after,omitempty"`
@@ -68,10 +68,10 @@ type GithubPushEvent struct {
 	BaseRef      *string                    `json:"base_ref,omitempty"`
 	Compare      *string                    `json:"compare,omitempty"`
 	Repo         *GithubPushEventRepository `json:"repository,omitempty"`
-	HeadCommit   *PushEventCommit           `json:"head_commit,omitempty"`
+	HeadCommit   *github.PushEventCommit    `json:"head_commit,omitempty"`
 	Pusher       *User                      `json:"pusher,omitempty"`
 	Sender       *User                      `json:"sender,omitempty"`
-	Installation *Installation              `json:"installation,omitempty"`
+	Installation *github.Installation       `json:"installation,omitempty"`
 }
 
 type GithubEventWrapper struct {

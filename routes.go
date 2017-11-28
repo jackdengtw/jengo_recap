@@ -16,13 +16,17 @@ func NewRouter(
 		var h http.Handler
 		h = handler.HandlerFunc()
 		h = Logger(h, handler.Name())
+		q := handler.Query()
 
-		router.
+		r := router.
 			Methods(handler.Method()).
 			Path(handler.Pattern()).
-			Name(handler.Name()).
-			Handler(h)
-	}
+			Name(handler.Name())
 
+		if q != "" {
+			r = r.Queries(q, "{"+q+"}")
+		}
+		r.Handler(h)
+	}
 	return router
 }

@@ -1,9 +1,10 @@
 package api
 
 type RunLog struct {
+	Id       string `bson:"_id"`
 	RunId    string `json:"run_id"`
 	FileName string `json:"file_name"`
-	Log      string `json:"log"` //text?
+	Content  string `bson:"content"`
 	Length   int    `json:"length"`
 }
 
