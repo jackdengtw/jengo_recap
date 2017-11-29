@@ -1,0 +1,31 @@
+{
+  "name": "jengo_test",
+  "version": "1.0.0",
+  "description": "mocha > test framework chai > assert lib sinon > mock lib",
+  "main": "index.js",
+  "dependencies": {
+    "chai": "^4.1.0",
+    "mocha": "^3.5.0",
+    "mongo": "^0.1.0",
+    "mongodb": "^2.2.30",
+    "request": "^2.81.0",
+    "sinon": "^2.4.1"
+  },
+  "devDependencies": {
+    "mocha": "^3.5.0"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iamtxh/jengo_test.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/iamtxh/jengo_test/issues"
+  },
+  "homepage": "https://github.com/iamtxh/jengo_test#readme"
+}
