@@ -1,36 +1,22 @@
-package api
+package model
 
-import "time"
+import (
+	"time"
+
+	"github.com/qetuantuan/jengo_recap/api"
+)
 
 // PushEventCommit represents a git commit in a GitHub PushEvent.
 type PushEventCommit struct {
-	Message  *string       `json:"message,omitempty"`
-	Author   *CommitAuthor `json:"author,omitempty"`
-	URL      *string       `json:"url,omitempty"`
-	Distinct *bool         `json:"distinct,omitempty"`
+	api.PushEventCommit
 
 	// The following fields are only populated by Events API.
 	SHA *string `json:"sha,omitempty"`
 
 	// The following fields are only populated by Webhook events.
-	ID        *string       `json:"id,omitempty"`
-	TreeID    *string       `json:"tree_id,omitempty"`
-	Timestamp *Timestamp    `json:"timestamp,omitempty"`
-	Committer *CommitAuthor `json:"committer,omitempty"`
-	Added     []string      `json:"added,omitempty"`
-	Removed   []string      `json:"removed,omitempty"`
-	Modified  []string      `json:"modified,omitempty"`
-}
-
-// CommitAuthor represents the author or committer of a commit. The commit
-// author may not correspond to a GitHub User.
-type CommitAuthor struct {
-	Date  *time.Time `json:"date,omitempty"`
-	Name  *string    `json:"name,omitempty"`
-	Email *string    `json:"email,omitempty"`
-
-	// The following fields are only populated by Webhook events.
-	Login *string `json:"username,omitempty"` // Renamed for go-github consistency.
+	Added    []string `json:"added,omitempty"`
+	Removed  []string `json:"removed,omitempty"`
+	Modified []string `json:"modified,omitempty"`
 }
 
 // Timestamp represents a time that can be unmarshalled from a JSON string

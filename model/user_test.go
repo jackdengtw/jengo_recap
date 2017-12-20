@@ -41,10 +41,12 @@ func TestToApiUser(t *testing.T) {
 		Auths: []Auth{
 			Auth{
 				AuthSourceId: api.AUTH_SOURCE_GITHUB,
-				Primary:      true,
+				AuthBase: api.AuthBase{
+					Primary: true,
+				},
 			},
 			Auth{
-				AuthSourceId: api.AUTH_SOURCE_GITHUB,
+				AuthSourceId: "something",
 			},
 		},
 		Scms: []Scm{
@@ -54,11 +56,15 @@ func TestToApiUser(t *testing.T) {
 		},
 	}
 	user.SetTokenEncrypted(api.AUTH_SOURCE_GITHUB, util.KeyCoder, token)
+
+	tmp, _ := util.AESEncode([]byte(util.KeyCoder), []byte(token))
+	if string(user.Auths[0].Token) != string(tmp) {
+		t.Errorf("token not decrypted. %v", user)
+	}
+
 	if u, err := user.ToApiUser(); err != nil {
 		t.Fatalf("ToApiUser failed: %v", err)
-	} else if u.Auth.Token != token {
-		t.Errorf("token not decrypted. %v", u)
-	} else if u.Auth.AuthSource.Id != api.AUTH_SOURCE_GITHUB {
+	} else if u.Auth.AuthSource.Name != api.AUTH_SOURCE_GITHUB {
 		t.Error("auth source not initialized. %v", u)
 	}
 }

@@ -1,14 +1,17 @@
 package api
 
-type RunLog struct {
-	Id       string `bson:"_id"`
-	RunId    string `json:"run_id"`
+type BuildLog struct {
+	BuildId string `json:"build_id"`
+
 	FileName string `json:"file_name"`
 	Content  string `bson:"content"`
-	Length   int    `json:"length"`
+
+	// TODO:
+	// url string
+	// time stampe
 }
 
-type GetRunLogParams struct {
+type GetBuildLogParams struct {
 	Offset int    `json:"offset"`
 	Limit  int    `json:"limit"`
 	RunId  string `json:"run_id"`

@@ -6,14 +6,8 @@ type Hook interface {
 	GetUrl() string
 }
 
-type GithubHookConf struct {
-	ContentType string `json:"content_type"`
-	Url         string `json:"url"`
-	InsecureSsl string `json:"insecure_ssl"`
-}
-
+// Github Hook
 //Todo : one project may have multiple hooks related to our system, but now we restrict only one
-
 type GithubHook struct {
 	ProjectId string         `json:"project_id" bson:"_id"`
 	Id        int            `json:"id"`
@@ -35,4 +29,11 @@ func (gh *GithubHook) SetProjectId(projectId string) {
 }
 func (gh *GithubHook) GetUrl() string {
 	return gh.Url
+}
+
+// GithubHook Config
+type GithubHookConf struct {
+	ContentType string `json:"content_type"`
+	Url         string `json:"url"`
+	InsecureSsl string `json:"insecure_ssl"`
 }
