@@ -18,6 +18,7 @@ type Repo struct {
 	RepoMeta `json:"meta"`
 	Enable   bool `json:"enable"`
 
-	UserIds  []string `json:"user_ids"` // userId in Jengo
-	Branches []string `json:"branches"`
+	UserIds    []string `json:"user_ids"` // userId in Jengo
+	Branches   []string `json:"branches"`
+	BuildIndex int
 }

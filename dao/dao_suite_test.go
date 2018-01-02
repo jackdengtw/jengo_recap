@@ -1,4 +1,4 @@
-package service
+package dao
 
 import (
 	"fmt"
@@ -14,9 +14,9 @@ import (
 	"gopkg.in/mgo.v2/dbtest"
 )
 
-func TestService(t *testing.T) {
+func TestDao(t *testing.T) {
 	RegisterFailHandler(Fail)
-	RunSpecs(t, "Service Suite")
+	RunSpecs(t, "Dao Suite")
 }
 
 var (
@@ -34,12 +34,12 @@ var _ = AfterSuite(func() {
 })
 
 func SetupMongo() (d string, server *dbtest.DBServer, session *mgo.Session) {
-	d, _ = ioutil.TempDir(os.TempDir(), "mongotools-test-service")
+	d, _ = ioutil.TempDir(os.TempDir(), "mongotools-test-dao")
 	server = &dbtest.DBServer{}
 	server.SetPath(d)
 	// Note that the server will be started automagically
 	session = server.Session()
-	fmt.Println("In setup")
+	fmt.Println("In dao mongo setup")
 	return
 }
 
@@ -48,5 +48,5 @@ func TearDown(d string, server *dbtest.DBServer, session *mgo.Session) {
 	server.Wipe()
 	server.Stop()
 	os.RemoveAll(d)
-	fmt.Println("In teardown")
+	fmt.Println("In dao mongo teardown")
 }

@@ -7,13 +7,31 @@ import (
 // Build
 type Build api.Build
 
-func (r *Build) ToApiObj() *api.Build {
-	return (*api.Build)(r)
+func (b *Build) ToApiObj() *api.Build {
+	return (*api.Build)(b)
 }
 
 // Note: Shadow Copy
-func NewBuildFrom(r *api.Build) *Build {
-	return (*Build)(r)
+func NewBuildFrom(b *api.Build) *Build {
+	return (*Build)(b)
+}
+
+// Builds
+type Builds []Build
+
+func (bs Builds) ToApiObj() (builds api.Builds) {
+	for _, b := range bs {
+		builds = append(builds, *b.ToApiObj())
+	}
+	return
+}
+
+// Note: Shadow Copy
+func NewBuildsFrom(bs api.Builds) (builds Builds) {
+	for _, b := range bs {
+		builds = append(builds, *NewBuildFrom(&b))
+	}
+	return
 }
 
 // SemanticBuild
@@ -31,8 +49,8 @@ func NewSemanticBuildFrom(b *api.SemanticBuild) *SemanticBuild {
 // Semantic
 type SemanticBuilds []SemanticBuild
 
-func (bs *SemanticBuilds) ToApiObj() (builds api.SemanticBuilds) {
-	for _, b := range *bs {
+func (bs SemanticBuilds) ToApiObj() (builds api.SemanticBuilds) {
+	for _, b := range bs {
 		builds = append(builds, *b.ToApiObj())
 	}
 	return

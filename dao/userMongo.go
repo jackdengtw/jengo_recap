@@ -4,42 +4,25 @@ import (
 	"errors"
 
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/model"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
-)
 
-const (
-	SCM_COLUMN  = "scms"
-	AUTH_COLUMN = "auths"
+	"github.com/qetuantuan/jengo_recap/model"
 )
-
-var userDbName string = "users"
-var userCol02 string = "user02"
 
 type UserMongoDao struct {
-	Url      string
-	GSession *mgo.Session
+	MongoDao
 }
 
-type MgoLog int
-
-func (m MgoLog) Output(calldepth int, s string) error {
-	// if glog.V(glog.Level(calldepth)) {
-	// TODO: Not sure why user service don't have glog info file log
-	//       use error instead for now
-	glog.Error(s)
-	// }
-	return nil
-}
-
-func (md *UserMongoDao) Init() (err error) {
-	md.GSession, err = mgo.Dial(md.Url)
-	var l MgoLog
-	mgo.SetLogger(l)
-	// TODO: make debug a command line option
-	// This is to debug Mongo queries
-	mgo.SetDebug(false)
+func (md *UserMongoDao) Init(d *MongoDao) (err error) {
+	if d == nil {
+		err = md.MongoDao.Init()
+	} else {
+		md.MongoDao = *d
+		if !d.Inited {
+			err = d.Init()
+		}
+	}
 	return err
 }
 
@@ -54,7 +37,7 @@ func (md *UserMongoDao) GetUser(userId string) (user model.User, err error) {
 	return
 }
 
-func (md *UserMongoDao) CreateUser(user *model.User) (err error) {
+func (md *UserMongoDao) UpsertUser(user *model.User) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	uc := session.DB(userDbName).C(userCol02)

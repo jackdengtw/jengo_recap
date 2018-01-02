@@ -8,7 +8,7 @@ import (
 // in favor of end user
 type SemanticBuild struct {
 	// Id is hash value from userId, repoId, branch and commitId
-	Id        string `json:"id"`
+	Id        string `json:"id" bson:"_id"`
 	ProjectId string `json:"project_id"`
 	UserId    string `json:"user_id"`
 	CommitId  string `json:"commit_id"`
@@ -22,7 +22,7 @@ type SemanticBuild struct {
 type SemanticBuilds []SemanticBuild
 
 type Build struct {
-	Id     string `json:"id"`
+	Id     string `json:"id" bson:"_id"`
 	Status string `json:"status"`
 	Result string `json:"result"`
 

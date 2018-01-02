@@ -1,7 +1,7 @@
 package api
 
 type BuildLog struct {
-	BuildId string `json:"build_id"`
+	Id string `json:"id" bson:"_id"`
 
 	FileName string `json:"file_name"`
 	Content  string `bson:"content"`
