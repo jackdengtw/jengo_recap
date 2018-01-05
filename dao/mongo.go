@@ -62,7 +62,7 @@ func (md *MongoDao) checkFieldType(updateData map[string]interface{}) bool {
 				actual = actual.Elem()
 			}
 			if t.Kind() != actual.Kind() {
-				glog.Error("Checking field type failed: expected is %v, actual is %v", t, actual)
+				glog.Errorf("Checking field type failed: expected is %v, actual is %v", t, actual)
 				return false
 			}
 		} else {

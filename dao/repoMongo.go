@@ -2,13 +2,11 @@ package dao
 
 import (
 	"errors"
-	"fmt"
 
 	"github.com/golang/glog"
 	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 
-	"github.com/qetuantuan/jengo_recap/algo"
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
@@ -28,68 +26,43 @@ func (md *RepoMongoDao) Init(d *MongoDao) (err error) {
 	return err
 }
 
-func (md *RepoMongoDao) UpdateRepos(repos []model.Repo, userId string) (err error) {
+func (md *RepoMongoDao) UpsertRepoMeta(Repos []model.Repo, userId string) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	for _, repo := range repos {
-		storeId, tmpErr := algo.To16Bytes(repo.RepoMeta.Id)
-		if tmpErr != nil {
-			err = tmpErr
-			glog.Warningf("Update Repo failed! get hash id failed![%v]", err)
-			break
-		}
-		err = pc.UpdateId(storeId, bson.M{"$set": bson.M{"repo.RepoMeta": repo.RepoMeta}, "$addToSet": bson.M{"Repo.users": userId}})
+	for i, repo := range Repos {
+		_, err = pc.UpsertId(repo.Id, bson.M{"$set": bson.M{"repometa": repo.RepoMeta},
+			"$addToSet": bson.M{"user_ids": userId}})
 		if err != nil {
-			glog.Errorf("Update failed for %v %v %v", repo.RepoMeta.Id, string(storeId), err)
+			err = BatchError{FailedIdx: i, RealErr: err}
+			glog.Warningf("insert Repo failed for %v %v", repo.Id, err)
 			break
 		}
-		glog.Errorf("Update Success for %v %v", repo.RepoMeta.Id, string(storeId))
+		glog.Infof("insert Repo success for %v", repo.Id)
 	}
 	return
 }
 
-// todo: maybe can merge InsertRepos&UpdateRepos to UpsertRepos function
-func (md *RepoMongoDao) InsertRepos(Repos []model.Repo, userId string) (err error) {
-	session := md.GSession.Copy()
-	defer session.Close()
-	pc := session.DB(repoDbName).C(repoCol)
-	for _, repo := range Repos {
-		storeId, tmpErr := algo.To16Bytes(repo.RepoMeta.Id)
-		if tmpErr != nil {
-			err = tmpErr
-			glog.Warningf("insert Repo failed! get hash id failed![%v]", err)
-			break
-		}
-		_, err = pc.UpsertId(storeId, bson.M{"$set": bson.M{"repo.RepoMeta": repo.RepoMeta}, "$addToSet": bson.M{"Repo.users": userId}})
-		if err != nil {
-			glog.Warningf("insert Repo failed for %v %v %v", repo.RepoMeta.Id, string(storeId), err)
-			break
-		}
-		glog.Infof("insert Repo success for %v %v", repo.RepoMeta.Id, string(storeId))
-	}
+func (md *RepoMongoDao) GetRepos(userId string, limitCount, offset int) (Repos []model.Repo, err error) {
+	Repos, err = md.GetReposByFilter(
+		map[string]interface{}{
+			"user_ids": userId,
+		}, limitCount, offset,
+	)
 	return
 }
 
-func (md *RepoMongoDao) DeleteRepos(Repos []model.Repo, userId string) (err error) {
+func (md *RepoMongoDao) UnlinkRepos(Repos []model.Repo, userId string) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	for _, repo := range Repos {
-		storeId, tmpErr := algo.To16Bytes(repo.RepoMeta.Id)
-		if tmpErr != nil {
-			err = tmpErr
-			glog.Warningf("Delete Repo failed! get hash id failed![%v]", err)
-			break
-		}
-		//todo: use removeall
-		//tmpErr := pc.RemoveId(storeId)
-		err = pc.UpdateId(storeId, bson.M{"$pull": bson.M{"Repo.users": userId}})
+	for i, repo := range Repos {
+		err = pc.UpdateId(repo.Id, bson.M{"$pull": bson.M{"user_ids": userId}})
 		if err != nil {
-			glog.Warningf("Delete Repo failed for %v %v %v", repo.RepoMeta.Id, string(storeId), err)
-		} else {
-			glog.Infof("Delete Repo success for %v %v", repo.RepoMeta.Id, string(storeId))
+			err = BatchError{FailedIdx: i, RealErr: err}
+			glog.Warningf("Unlink Repo failed for %v %v", repo.Id, err)
 		}
+		glog.Infof("Unlink Repo success for %v", repo.Id)
 	}
 	return
 }
@@ -100,7 +73,7 @@ func (md *RepoMongoDao) GetReposByFilter(filter map[string]interface{}, limitCou
 	pc := session.DB(repoDbName).C(repoCol)
 	RepoFilter := bson.M{}
 	for key, value := range filter {
-		filterKey := "Repo." + key
+		filterKey := key
 		switch value.(type) {
 		case bool:
 			if value.(bool) {
@@ -114,44 +87,33 @@ func (md *RepoMongoDao) GetReposByFilter(filter map[string]interface{}, limitCou
 			RepoFilter[filterKey] = value
 		}
 	}
-	fmt.Println(RepoFilter)
+	glog.Infof("Filter of get repos is: %v", RepoFilter)
 	err = pc.Find(&RepoFilter).
-		Sort("-repo.RepoMeta.createdat").Skip(offset).Limit(limitCount).All(&Repos)
+		Sort("-repometa.createdat").Skip(offset).Limit(limitCount).All(&Repos)
 	return
 }
 
 func (md *RepoMongoDao) GetReposByScms(userId string, scms []string) (Repos []model.Repo, err error) {
-	session := md.GSession.Copy()
-	defer session.Close()
-	pc := session.DB(repoDbName).C(repoCol)
-	err = pc.Find(&bson.M{"Repo.users": userId, "repo.RepoMeta.scm": &bson.M{"$in": scms}}).
-		Sort("-repo.RepoMeta.createdat").All(&Repos)
+	Repos, err = md.GetReposByFilter(
+		map[string]interface{}{
+			"user_ids":         userId,
+			"repometa.scmname": scms,
+		}, 0, 0,
+	)
 	return
 }
 
-func (md *RepoMongoDao) GetRepos(userId string, limitCount, offset int) (Repos []model.Repo, err error) {
+func (md *RepoMongoDao) GetBuildIndex(id string) (idx int, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	err = pc.Find(bson.M{"Repo.users": userId}).Sort("-repo.RepoMeta.createdat").Skip(offset).Limit(limitCount).All(&Repos)
-	return
-}
-
-func (md *RepoMongoDao) GetBuildIndex(RepoId string) (idx int, err error) {
-	session := md.GSession.Copy()
-	defer session.Close()
-	pc := session.DB(repoDbName).C(repoCol)
-	var storeId []byte
-	if storeId, err = algo.To16Bytes(RepoId); err != nil {
-		return
-	}
 	var p model.Repo
 	change := mgo.Change{
-		Update:    bson.M{"$inc": bson.M{"Repo.runindex": 1}},
+		Update:    bson.M{"$inc": bson.M{"buildindex": 1}},
 		ReturnNew: true,
 	}
 
-	_, err = pc.Find(bson.M{"_id": storeId}).Apply(change, &p)
+	_, err = pc.Find(bson.M{"_id": id}).Apply(change, &p)
 	idx = p.BuildIndex
 	return
 }
@@ -160,46 +122,34 @@ func (md *RepoMongoDao) GetRepo(id string) (Repo model.Repo, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	var storeId []byte
-	if storeId, err = algo.To16Bytes(id); err != nil {
-		return
-	}
 	var p model.Repo
-	err = pc.FindId(storeId).One(&p)
+	err = pc.FindId(id).One(&p)
 	return p, err
 }
 
-func (md *RepoMongoDao) SwitchRepo(RepoId string, enableStatus bool) (err error) {
+func (md *RepoMongoDao) SwitchRepo(id string, enableStatus bool) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	var storeId []byte
-	if storeId, err = algo.To16Bytes(RepoId); err != nil {
-		return
-	}
-	err = pc.UpdateId(storeId, bson.M{"$set": bson.M{"Repo.enable": enableStatus}})
+	err = pc.UpdateId(id, bson.M{"$set": bson.M{"enabled": enableStatus}})
 	return
 }
 
 /*
 	Update Repo dynamic info. including: state latestBuildId, branch
 */
-func (md *RepoMongoDao) UpdateDynamicRepoInfo(RepoId, state, latestBuildId, branch string) (err error) {
+func (md *RepoMongoDao) UpdateDynamicRepoInfo(id, state, latestBuildId, branch string) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
-	var storeId []byte
-	if storeId, err = algo.To16Bytes(RepoId); err != nil {
-		return
-	}
 	updateMap := bson.M{}
 
 	setMap := bson.M{}
 	if state != "" {
-		setMap["Repo.state"] = state
+		setMap["state"] = state
 	}
 	if latestBuildId != "" {
-		setMap["Repo.latestbuildid"] = latestBuildId
+		setMap["latestbuildid"] = latestBuildId
 	}
 	if len(setMap) != 0 {
 		updateMap["$set"] = setMap
@@ -207,7 +157,7 @@ func (md *RepoMongoDao) UpdateDynamicRepoInfo(RepoId, state, latestBuildId, bran
 
 	addToSetMap := bson.M{}
 	if branch != "" {
-		addToSetMap["Repo.branches"] = branch
+		addToSetMap["branches"] = branch
 	}
 
 	if len(addToSetMap) != 0 {
@@ -217,6 +167,6 @@ func (md *RepoMongoDao) UpdateDynamicRepoInfo(RepoId, state, latestBuildId, bran
 		err = errors.New("nothing to update")
 		return
 	}
-	err = pc.UpdateId(storeId, updateMap)
+	err = pc.UpdateId(id, updateMap)
 	return
 }

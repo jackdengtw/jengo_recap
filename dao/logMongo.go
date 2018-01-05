@@ -19,6 +19,7 @@ func (md *LogMongoDao) Init(d *MongoDao) (err error) {
 			err = d.Init()
 		}
 	}
+
 	return err
 }
 

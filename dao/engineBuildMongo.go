@@ -1,7 +1,6 @@
 package dao
 
 import (
-	"fmt"
 	"reflect"
 
 	"github.com/golang/glog"
@@ -12,16 +11,19 @@ import (
 
 type EngineBuildDaoInterface interface {
 	UpdateBuildProperties(string, map[string]interface{}) error
-	InsertBuild(*model.Build) error
+	InsertBuild(*model.Build) (string, error)
 	ListBuilds(map[string]interface{}, int, int) (model.Builds, error)
 	GetBuild(string) (*model.Build, error)
 }
 
-type EngineBuildDao struct {
+type EngineBuildMongoDao struct {
 	MongoDao
 }
 
-func (md *EngineBuildDao) Init(d *MongoDao) (err error) {
+// compile time check of implementation
+var _ EngineBuildDaoInterface = &EngineBuildMongoDao{}
+
+func (md *EngineBuildMongoDao) Init(d *MongoDao) (err error) {
 	if d == nil {
 		err = md.MongoDao.Init()
 	} else {
@@ -33,12 +35,10 @@ func (md *EngineBuildDao) Init(d *MongoDao) (err error) {
 
 	md.initFieldJsonTypes(reflect.TypeOf(model.Build{}))
 
-	fmt.Printf("%v\n", md.initFieldJsonTypes)
-
 	return err
 }
 
-func (md *EngineBuildDao) UpdateBuildProperties(BuildId string, updateData map[string]interface{}) (err error) {
+func (md *EngineBuildMongoDao) UpdateBuildProperties(BuildId string, updateData map[string]interface{}) (err error) {
 	if !md.checkFieldType(updateData) {
 		err = ErrorTypeNotMatch
 		return
@@ -53,20 +53,25 @@ func (md *EngineBuildDao) UpdateBuildProperties(BuildId string, updateData map[s
 	return
 }
 
-func (md *EngineBuildDao) InsertBuild(Build *model.Build) (err error) {
+func (md *EngineBuildMongoDao) InsertBuild(build *model.Build) (id string, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(engineDbName).C(buildCol)
-
-	err = pc.Insert(*Build)
+	if build.Id == "" {
+		id = bson.NewObjectId().Hex()
+		build.Id = id
+	} else {
+		id = build.Id
+	}
+	err = pc.Insert(*build)
 	if err != nil {
-		glog.Errorf("UpsertId failed for %v %v", Build.Id, err)
+		glog.Errorf("UpsertId failed for %v %v", build.Id, err)
 
 	}
 	return
 }
 
-func (md *EngineBuildDao) ListBuilds(query map[string]interface{}, limitCount int, offset int) (Builds model.Builds, err error) {
+func (md *EngineBuildMongoDao) ListBuilds(query map[string]interface{}, limitCount int, offset int) (Builds model.Builds, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(engineDbName).C(buildCol)
@@ -78,7 +83,7 @@ func (md *EngineBuildDao) ListBuilds(query map[string]interface{}, limitCount in
 	return
 }
 
-func (md *EngineBuildDao) GetBuild(id string) (Build *model.Build, err error) {
+func (md *EngineBuildMongoDao) GetBuild(id string) (Build *model.Build, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(engineDbName).C(buildCol)

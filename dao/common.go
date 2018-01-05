@@ -2,6 +2,7 @@ package dao
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/golang/glog"
 )
@@ -33,6 +34,15 @@ const (
 )
 
 // Errors
+type BatchError struct {
+	FailedIdx int
+	RealErr   error
+}
+
+func (e BatchError) Error() string {
+	return fmt.Sprintf("No. %v element failed. Real err: %v", e.FailedIdx, e.RealErr)
+}
+
 var (
 	ErrorBuildNotFind = errors.New("build not found")
 	ErrorTypeNotMatch = errors.New("type not match")

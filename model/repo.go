@@ -24,5 +24,5 @@ func (s ById) Swap(i, j int) {
 	s[i], s[j] = s[j], s[i]
 }
 func (s ById) Less(i, j int) bool {
-	return s[i].RepoMeta.Id < s[j].RepoMeta.Id
+	return s[i].Id < s[j].Id
 }

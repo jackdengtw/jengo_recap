@@ -9,11 +9,11 @@ import (
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
-var _ = Describe("EngineBuildebdao", func() {
+var _ = Describe("EngineBuildDao", func() {
 	Describe("Testing a basic flow", func() {
 		var (
 			strangeStatus string = "strange"
-			ebdao         *EngineBuildDao
+			ebdao         *EngineBuildMongoDao
 			expected      *model.Build
 			err           error
 
@@ -27,7 +27,7 @@ var _ = Describe("EngineBuildebdao", func() {
 				if inserted {
 					return
 				}
-				ebdao = &EngineBuildDao{}
+				ebdao = &EngineBuildMongoDao{}
 				// init data but won't dial to mongo
 				ebdao.Init(&MongoDao{Inited: true})
 				ebdao.GSession = session
@@ -37,7 +37,7 @@ var _ = Describe("EngineBuildebdao", func() {
 				}
 
 				fmt.Println("Inserting")
-				err = ebdao.InsertBuild(expected)
+				_, err = ebdao.InsertBuild(expected)
 				inserted = true
 			})
 			It("Should return success", func() {

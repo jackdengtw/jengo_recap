@@ -1,5 +1,7 @@
 package api
 
+// TODO: move log struct out of API object.
+// Log should be bytes and as payload of http response.
 type BuildLog struct {
 	Id string `json:"id" bson:"_id"`
 
@@ -12,7 +14,7 @@ type BuildLog struct {
 }
 
 type GetBuildLogParams struct {
-	Offset int    `json:"offset"`
-	Limit  int    `json:"limit"`
-	RunId  string `json:"run_id"`
+	Offset  int    `json:"offset"`
+	Limit   int    `json:"limit"`
+	BuildId string `json:"build_id"`
 }
