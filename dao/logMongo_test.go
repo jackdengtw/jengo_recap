@@ -1,8 +1,6 @@
 package dao
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -18,23 +16,22 @@ var _ = Describe("Log Mongo dao", func() {
 			err        error
 
 			inserted bool
-			got      bool
 		)
 		Context("Inserting Log", func() {
 			BeforeEach(func() {
 				if inserted {
 					return
 				}
-				lmdao = &LogMongoDao{}
-				// init data but won't dial to mongo
-				lmdao.Init(&MongoDao{Inited: true})
-				lmdao.GSession = session
 
 				expected = &model.BuildLog{
 					Content: contentStr,
 				}
 
-				fmt.Println("Inserting")
+				lmdao = &LogMongoDao{}
+				// init data but won't dial to mongo
+				lmdao.Init(&MongoDao{Inited: true})
+				lmdao.GSession = session
+
 				expected.Id, err = lmdao.AddLog([]byte(contentStr))
 				inserted = true
 			})
@@ -45,13 +42,7 @@ var _ = Describe("Log Mongo dao", func() {
 			Context("Getting Log", func() {
 				actual := &model.BuildLog{}
 				BeforeEach(func() {
-					if got {
-						return
-					}
-
-					fmt.Println("Getting")
 					*actual, err = lmdao.GetLog(expected.Id)
-					got = true
 				})
 				It("Should return the same expected obj", func() {
 					Expect(err).NotTo(HaveOccurred())

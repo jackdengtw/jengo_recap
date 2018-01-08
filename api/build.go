@@ -7,12 +7,13 @@ import (
 // distincted by branch + commitId for a repo
 // in favor of end user
 type SemanticBuild struct {
-	// Id is hash value from userId, repoId, branch and commitId
-	Id        string `json:"id" bson:"_id"`
-	ProjectId string `json:"project_id"`
-	UserId    string `json:"user_id"`
-	CommitId  string `json:"commit_id"`
-	Branch    string `json:"branch"`
+	// Id is hash value from repoId, branch and commitId
+	Id       string `json:"id" bson:"_id"`
+	RepoId   string `json:"repo_id"`
+	CommitId string `json:"commit_id"`
+	Branch   string `json:"branch"`
+
+	UserId string `json:"user_id"`
 
 	Numero *int `json:"numero,omitempty"`
 

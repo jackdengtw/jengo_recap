@@ -16,7 +16,6 @@ var _ = Describe("Repo Mongo dao", func() {
 			err       error
 
 			inserted bool
-			got      bool
 		)
 		BeforeEach(func() {
 			expected1 = &model.Repo{
@@ -53,12 +52,7 @@ var _ = Describe("Repo Mongo dao", func() {
 		Context("Getting Repos", func() {
 			var actual []model.Repo
 			BeforeEach(func() {
-				if got {
-					return
-				}
-
 				actual, err = rmdao.GetRepos("user1", 20, 0)
-				got = true
 			})
 			It("Should return the same expected obj", func() {
 				Expect(err).NotTo(HaveOccurred())

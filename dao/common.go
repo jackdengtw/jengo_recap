@@ -44,8 +44,10 @@ func (e BatchError) Error() string {
 }
 
 var (
-	ErrorBuildNotFind = errors.New("build not found")
-	ErrorTypeNotMatch = errors.New("type not match")
+	ErrorBuildNotFound           = errors.New("build not found")
+	ErrorTypeNotMatch            = errors.New("type not match")
+	ErrorAlreadyExisted          = errors.New("the same build id already existed")
+	ErrorMoreThanOneBuildExisted = errors.New("more than one build existed for one id")
 )
 
 // MgoLog

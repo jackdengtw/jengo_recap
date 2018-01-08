@@ -1,8 +1,6 @@
 package dao
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
@@ -17,16 +15,11 @@ var _ = Describe("EngineBuildDao", func() {
 			expected      *model.Build
 			err           error
 
-			inserted   bool
-			got        bool
-			updated    bool
-			gotUpdated bool
+			inserted bool
+			updated  bool
 		)
 		Context("Inserting Build", func() {
 			BeforeEach(func() {
-				if inserted {
-					return
-				}
 				ebdao = &EngineBuildMongoDao{}
 				// init data but won't dial to mongo
 				ebdao.Init(&MongoDao{Inited: true})
@@ -36,7 +29,9 @@ var _ = Describe("EngineBuildDao", func() {
 					Id: "123",
 				}
 
-				fmt.Println("Inserting")
+				if inserted {
+					return
+				}
 				_, err = ebdao.InsertBuild(expected)
 				inserted = true
 			})
@@ -46,13 +41,7 @@ var _ = Describe("EngineBuildDao", func() {
 			Context("Getting Build", func() {
 				var actual *model.Build
 				BeforeEach(func() {
-					if got {
-						return
-					}
-
-					fmt.Println("Getting")
 					actual, err = ebdao.GetBuild(expected.Id)
-					got = true
 				})
 				It("Should return the same expected obj", func() {
 					Expect(err).NotTo(HaveOccurred())
@@ -64,7 +53,6 @@ var _ = Describe("EngineBuildDao", func() {
 							return
 						}
 
-						fmt.Println("Updating")
 						err = ebdao.UpdateBuildProperties(
 							expected.Id,
 							map[string]interface{}{"status": strangeStatus})
@@ -82,13 +70,7 @@ var _ = Describe("EngineBuildDao", func() {
 					Context("Getting updated Build", func() {
 						var actual *model.Build
 						BeforeEach(func() {
-							if gotUpdated {
-								return
-							}
-
-							fmt.Println("Getting updated")
 							actual, err = ebdao.GetBuild(expected.Id)
-							gotUpdated = true
 						})
 						It("Should return the same expected obj", func() {
 							Expect(err).NotTo(HaveOccurred())
@@ -98,7 +80,6 @@ var _ = Describe("EngineBuildDao", func() {
 					Context("Listing Build", func() {
 						var actual model.Builds
 						BeforeEach(func() {
-							fmt.Println("Listing build")
 							actual, err = ebdao.ListBuilds(
 								map[string]interface{}{"status": strangeStatus},
 								10,

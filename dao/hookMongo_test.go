@@ -1,8 +1,6 @@
 package dao
 
 import (
-	"fmt"
-
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gopkg.in/mgo.v2"
@@ -18,14 +16,10 @@ var _ = Describe("Hook Mongo dao", func() {
 			err      error
 
 			inserted bool
-			got      bool
 			deleted  bool
 		)
 		Context("Inserting Hook", func() {
 			BeforeEach(func() {
-				if inserted {
-					return
-				}
 				hmdao = &HookMongoDao{}
 				// init data but won't dial to mongo
 				hmdao.Init(&MongoDao{Inited: true})
@@ -38,7 +32,9 @@ var _ = Describe("Hook Mongo dao", func() {
 					},
 				}
 
-				fmt.Println("Inserting")
+				if inserted {
+					return
+				}
 				_, err = hmdao.UpsertHook(*expected)
 				inserted = true
 			})
@@ -48,13 +44,7 @@ var _ = Describe("Hook Mongo dao", func() {
 			Context("Getting Hook", func() {
 				var actual *model.GithubHook = &model.GithubHook{}
 				BeforeEach(func() {
-					if got {
-						return
-					}
-
-					fmt.Println("Getting")
 					*actual, err = hmdao.GetHook(expected.Id)
-					got = true
 				})
 				It("Should return the same expected obj", func() {
 					Expect(err).NotTo(HaveOccurred())
