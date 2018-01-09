@@ -48,7 +48,7 @@ func (u *GithubUser) ToMongoUser() (mongoUser *User) {
 	mongoUser = &User{}
 	// TODO: A new way to generate user id
 	timeNow := time.Now().UTC()
-	mongoUser.UserId = "u_github_" + strconv.Itoa(u.Id)
+	mongoUser.Id = "u_github_" + strconv.Itoa(u.Id)
 	mongoUser.CreatedAt = &timeNow
 	mongoUser.UpdatedAt = &timeNow
 	mongoUser.Auths = []Auth{
@@ -70,7 +70,7 @@ func (u *GithubUser) ToMongoUser() (mongoUser *User) {
 	mongoUser.Scms = []Scm{
 		Scm{
 			ScmBase: api.ScmBase{
-				Id:          mongoUser.UserId,
+				Id:          mongoUser.Id,
 				OriginId:    strconv.Itoa(u.Id),
 				DisplayName: u.Name,
 				LoginName:   u.Login,

@@ -29,7 +29,7 @@ func (md *EngineBuildMongoDao) Init(d *MongoDao) (err error) {
 	} else {
 		md.MongoDao = *d
 		if !d.Inited {
-			err = d.Init()
+			err = md.MongoDao.Init()
 		}
 	}
 

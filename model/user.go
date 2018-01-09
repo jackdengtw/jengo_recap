@@ -62,7 +62,7 @@ func (s *Scm) ToApiScm() *api.Scm {
 
 // Mongo Object User v0.2
 type User struct {
-	UserId    string     `bson:"_id"` // Temporarily
+	Id        string     `bson:"_id"` // Temporarily
 	UpdatedAt *time.Time `bson:"updated_at"`
 	CreatedAt *time.Time `bson:"created_at"`
 	Auths     []Auth     `bson:"auths"`
@@ -92,7 +92,7 @@ func (u *User) SetTokenEncrypted(id string, key string, token string) (err error
 
 func (u *User) ToApiUser() (*api.User02, error) {
 	user := &api.User02{
-		UserId:    u.UserId,
+		Id:        u.Id,
 		UpdatedAt: u.UpdatedAt,
 		CreatedAt: u.CreatedAt,
 	}

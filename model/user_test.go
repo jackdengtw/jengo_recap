@@ -37,7 +37,7 @@ func TestSetToken(t *testing.T) {
 func TestToApiUser(t *testing.T) {
 	token := "iamatoken"
 	user := &User{
-		UserId: "123",
+		Id: "123",
 		Auths: []Auth{
 			Auth{
 				AuthSourceId: api.AUTH_SOURCE_GITHUB,

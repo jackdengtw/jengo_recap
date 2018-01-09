@@ -37,7 +37,7 @@ type Scm struct {
 }
 
 type User02 struct {
-	UserId    string     `json:"user_id"` // userId in Jengo
+	Id        string     `json:"id"` // userId in Jengo
 	UpdatedAt *time.Time `json:"updated_at"`
 	CreatedAt *time.Time `json:"created_at"`
 	Auth      Auth       `json:"auth"`

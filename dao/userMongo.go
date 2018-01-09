@@ -20,7 +20,7 @@ func (md *UserMongoDao) Init(d *MongoDao) (err error) {
 	} else {
 		md.MongoDao = *d
 		if !d.Inited {
-			err = d.Init()
+			err = md.MongoDao.Init()
 		}
 	}
 	return err
@@ -41,22 +41,23 @@ func (md *UserMongoDao) UpsertUser(user *model.User) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	uc := session.DB(userDbName).C(userCol02)
-	_, err = uc.UpsertId(user.UserId, &user)
+	// TODO: generate ID when not existed
+	_, err = uc.UpsertId(user.Id, &user)
 	if err != nil {
 		glog.Error("err when CreateUser because of :", err)
 	}
 	return
 }
 
-func (md *UserMongoDao) GetUserByLogin(loginName string, auth string) (user *model.User, err error) {
+func (md *UserMongoDao) GetUserByLogin(loginName string, auth string) (user model.User, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	uc := session.DB(userDbName).C(userCol02)
 	var users []model.User
 	err = uc.Find(bson.M{
-		"auths.login_name":     loginName,
-		"auths.auth_source_id": auth,
-		"auths.primary":        true,
+		"auths.authbase.loginname": loginName,
+		"auths.auth_source_id":     auth,
+		"auths.authbase.primary":   true,
 	}).All(&users)
 	if err != nil {
 		glog.Error("err when GetUser because of :", err)
@@ -71,14 +72,14 @@ func (md *UserMongoDao) GetUserByLogin(loginName string, auth string) (user *mod
 		return
 	}
 
-	return &users[0], nil
+	return users[0], nil
 }
 
 func (md *UserMongoDao) UpdateToken(userId, sourceType, scmId string, token []byte) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	uc := session.DB(userDbName).C(userCol02)
-	err = uc.Update(bson.M{"_id": userId, sourceType + ".id": scmId},
+	err = uc.Update(bson.M{"_id": userId, sourceType + ".authbase.id": scmId},
 		bson.M{"$set": bson.M{sourceType + ".$.token": token}})
 	return
 }
