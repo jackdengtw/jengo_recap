@@ -17,7 +17,7 @@ type SemanticBuild struct {
 
 	Numero *int `json:"numero,omitempty"`
 
-	Builds []Build `json:"builds"`
+	Builds Builds `json:"builds"`
 }
 
 type SemanticBuilds []SemanticBuild
@@ -27,9 +27,15 @@ type Build struct {
 	Status string `json:"status"`
 	Result string `json:"result"`
 
-	EventId    *string           `json:"event_id,omitempty"`
-	Commits    []PushEventCommit `json:"commits"`
-	HeadCommit *PushEventCommit  `json:"head_commit,omitempty"`
+	// duplicate info in SemanticBuild for now. Later on remove Semantic Build
+	RepoId   string `json:"repo_id"`
+	CommitId string `json:"commit_id"`
+	Branch   string `json:"branch"`
+	UserId   string `json:"user_id"`
+
+	EventId    *string          `json:"event_id,omitempty"`
+	Commits    PushEventCommits `json:"commits"`
+	HeadCommit *PushEventCommit `json:"head_commit,omitempty"`
 
 	LogUri    *string        `json:"log_url,omitempty"`
 	UpdatedAt *time.Time     `json:"updated_at,omitempty"`

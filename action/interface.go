@@ -14,9 +14,9 @@ const (
 )
 
 var stateMap = map[ActionState]string{
-	UNKNOWN: constant.RUN_STATE_UNKNOWN,
-	SUCCESS: constant.RUN_STATE_SUCCESS,
-	FAILED:  constant.RUN_STATE_FAILED,
+	UNKNOWN: constant.BUILD_STATE_UNKNOWN,
+	SUCCESS: constant.BUILD_STATE_SUCCESS,
+	FAILED:  constant.BUILD_STATE_FAILED,
 }
 
 func ActionStateToString(state ActionState) string {

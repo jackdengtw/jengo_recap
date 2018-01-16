@@ -10,9 +10,18 @@ import (
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
+type UserDao interface {
+	GetUser(userId string) (user model.User, err error)
+	UpsertUser(user *model.User) (err error)
+	GetUserByLogin(loginName string, auth string) (user model.User, err error)
+	UpdateToken(userId, sourceType, scmId string, token []byte) (err error)
+}
+
 type UserMongoDao struct {
 	MongoDao
 }
+
+var _ UserDao = &UserMongoDao{}
 
 func (md *UserMongoDao) Init(d *MongoDao) (err error) {
 	if d == nil {

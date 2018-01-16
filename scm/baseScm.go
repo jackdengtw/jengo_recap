@@ -14,10 +14,13 @@ import (
 
 type Scm interface {
 	// Init(string)
+
+	// TODO: move to an abstract user when supporting another SCM
+	GetUser(token string) (user GithubUser, err error)
 	SetHook(string) (model.GithubHook, error)
 	EditHook(string) (model.GithubHook, error)
 	DeleteHook(string) error
-	GetProjectList() ([]model.Project, error)
+	GetRepoList() ([]model.Repo, error)
 	SetToken(string)
 	GetYmlContent(repo string, branch string) (content []byte, err error)
 }

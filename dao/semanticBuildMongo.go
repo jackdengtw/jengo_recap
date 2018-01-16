@@ -125,11 +125,11 @@ func (md *SemanticBuildMongoDao) IsBuildExistInSemanticBuild(buildId, sBuildId s
 // Build
 //
 
-func (md *SemanticBuildMongoDao) InsertBuild(sbuildId string, Build model.Build) (err error) {
+func (md *SemanticBuildMongoDao) InsertBuild(sbuildId string, build model.Build) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	bc := session.DB(repoDbName).C(buildCol)
-	err = bc.UpdateId(sbuildId, bson.M{"$push": bson.M{"builds": Build}})
+	err = bc.UpdateId(sbuildId, bson.M{"$push": bson.M{"builds": build}})
 	return
 }
 

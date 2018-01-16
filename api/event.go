@@ -16,6 +16,8 @@ type PushEventCommit struct {
 	Committer *CommitAuthor `json:"committer,omitempty"`
 }
 
+type PushEventCommits []PushEventCommit
+
 // CommitAuthor is a subset of model.CommitAuther exposing to end user
 type CommitAuthor struct {
 	Date  *time.Time `json:"date,omitempty"`

@@ -32,14 +32,14 @@ var _ = Describe("EngineBuildDao", func() {
 				if inserted {
 					return
 				}
-				_, err = ebdao.InsertBuild(expected)
+				_, err = ebdao.InsertBuild(*expected)
 				inserted = true
 			})
 			It("Should return success", func() {
 				Expect(err).NotTo(HaveOccurred())
 			})
 			Context("Getting Build", func() {
-				var actual *model.Build
+				var actual model.Build
 				BeforeEach(func() {
 					actual, err = ebdao.GetBuild(expected.Id)
 				})
@@ -68,7 +68,7 @@ var _ = Describe("EngineBuildDao", func() {
 						Expect(err).To(Equal(ErrorTypeNotMatch))
 					})
 					Context("Getting updated Build", func() {
-						var actual *model.Build
+						var actual model.Build
 						BeforeEach(func() {
 							actual, err = ebdao.GetBuild(expected.Id)
 						})

@@ -9,37 +9,58 @@ import (
 	"github.com/qetuantuan/jengo_recap/api"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
-	"gopkg.in/mgo.v2"
 )
 
-type RunLogServiceInterface interface {
-	RunLogGetter
-	PutLog(logs []byte, buildId, runId string) (id string, err error)
-	GetLog(id string) (log api.RunLog, err error)
+type BuildLogReader interface {
+	GetLog(params *api.GetBuildLogParams) (*model.BuildLog, error)
 }
 
-type RunLogService struct {
-	Md *dao.ProjectMongoDao
+type BuildLogWriter interface {
+	AppendLog(logUri string, content []byte) (err error)
+	PutLog(content []byte) (logUri string, err error)
 }
 
-func (l *RunLogService) PutLog(logs []byte, buildId, runId string) (id string, err error) {
-	id, err = l.Md.AddLog(logs)
+type BuildLogService interface {
+	BuildLogReader
+	BuildLogWriter
+}
+
+var _ BuildLogService = &LocalBuildLogService{}
+
+type LocalBuildLogService struct {
+	Md *dao.LogMongoDao
+}
+
+const max_log_length = 500
+
+var FileDir = "/tmp/engine/"
+
+func (l *LocalBuildLogService) PutLog(content []byte) (logUri string, err error) {
+	logUri, err = l.Md.AddLog(content)
 	if err != nil {
 		glog.Warningf("write logs to mongodb failed! error:%v", err)
 		err = MongoError
 		return
 
 	}
-	if err = l.Md.UpdateRunLog(buildId, runId, id); err != nil {
-		glog.Warningf("update logid in run info failed! error:%v ", err)
-		err = MongoError
+	return
+	/*
+		if err = l.Md.UpdateBuildLog(buildId, BuildId, id); err != nil {
+			glog.Warningf("update logid in Build info failed! error:%v ", err)
+			err = MongoError
+			return
+		}
 		return
-	}
+	*/
+}
+
+func (l *LocalBuildLogService) AppendLog(logUri string, content []byte) (err error) {
 	return
 }
 
-func (l *RunLogService) GetLog(id string) (runLog api.RunLog, err error) {
-	var log model.RunLog
+/*
+func (l *LocalBuildLogService) GetLog(id string) (BuildLog api.BuildLog, err error) {
+	var log model.BuildLog
 	log, err = l.Md.GetLog(id)
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -52,23 +73,16 @@ func (l *RunLogService) GetLog(id string) (runLog api.RunLog, err error) {
 			return
 		}
 	}
-	runLog = *log.ToApiObj()
+	BuildLog = *log.ToApiObj()
 	return
 }
+*/
 
-type RunLogGetter interface {
-	GetRunLog(params *api.GetRunLogParams) (*api.RunLog, error)
-}
+func (u *LocalBuildLogService) GetLog(params *api.GetBuildLogParams) (*model.BuildLog, error) {
+	f := FileDir + params.BuildId + ".log"
+	s := params.BuildId
 
-const max_log_length = 500
-
-var FileDir = "/tmp/engine/"
-
-func (u *RunLogService) GetRunLog(params *api.GetRunLogParams) (*api.RunLog, error) {
-	f := FileDir + params.RunId + ".log"
-	s := params.RunId
-
-	var logObj = &model.RunLog{}
+	var logObj = &model.BuildLog{}
 	if params.Limit == 0 {
 		params.Limit = 100
 	}
@@ -82,20 +96,18 @@ func (u *RunLogService) GetRunLog(params *api.GetRunLogParams) (*api.RunLog, err
 			realLimit = max_log_length - params.Offset
 			if realLimit < 0 {
 				logObj.Content = ""
-				return logObj.ToApiObj(), nil
+				return logObj, nil
 			}
 		}
 		logObj.Content = s + GetRandomString(params.Offset+realLimit-len(s))
 		if err := ioutil.WriteFile(f, []byte(logObj.Content), 0644); err != nil {
-			return logObj.ToApiObj(), err
+			return logObj, err
 		}
 	}
 
-	logObj.RunId = params.RunId
-	logObj.FileName = params.RunId
-	logObj.Length = realLimit
+	logObj.FileName = params.BuildId
 
-	return logObj.ToApiObj(), nil
+	return logObj, nil
 }
 
 func GetRandomString(len int) string {

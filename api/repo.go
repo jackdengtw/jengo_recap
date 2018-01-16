@@ -7,7 +7,7 @@ type RepoMeta struct {
 
 	Name     *string `json:"name,omitempty"`
 	FullName *string `json:"full_name,omitempty"`
-	Url      *string `json:"url,omitempty"`
+	GitUrl   *string `json:"git_url,omitempty"`
 	HtmlUrl  *string `json:"html_url,omitempty"`
 
 	HooksUrl *string `json:"hooks_url,omitempty"`

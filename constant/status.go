@@ -1,13 +1,13 @@
 package constant
 
 const (
-	RUN_PRESTART = "prestarted"
-	RUN_RUNNING  = "running"
-	RUN_FINISHED = "finished"
+	BUILD_PRESTART  = "prestarted"
+	BUILD_BUILDNING = "BUILDning"
+	BUILD_FINISHED  = "finished"
 )
 
 const (
-	RUN_STATE_SUCCESS = "success"
-	RUN_STATE_FAILED  = "failed"
-	RUN_STATE_UNKNOWN = "unknown"
+	BUILD_STATE_SUCCESS = "success"
+	BUILD_STATE_FAILED  = "failed"
+	BUILD_STATE_UNKNOWN = "unknown"
 )

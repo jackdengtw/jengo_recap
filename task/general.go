@@ -1,7 +1,6 @@
 package task
 
 import (
-	"github.com/qetuantuan/jengo_recap/api"
 	"github.com/qetuantuan/jengo_recap/definition"
 	"github.com/qetuantuan/jengo_recap/model"
 )
@@ -10,11 +9,11 @@ type General struct {
 	Version uint
 
 	// Start // executor update Run.Run.State
-	Run *model.InnerRun
+	Build *model.Build
 
 	// Parser
-	User    *api.User02
-	Project *model.Project
+	User *model.User
+	Repo *model.Repo
 
 	Template *definition.Template
 	Manifest *definition.Manifest

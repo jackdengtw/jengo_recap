@@ -59,7 +59,7 @@ func NewGithubScm(hookUrl string) *GithubScm {
 	return &gs
 }
 
-func (gs *GithubScm) GetGithubUser(token string) (user model.GithubUser, err error) {
+func (gs *GithubScm) GetUser(token string) (user GithubUser, err error) {
 	uri := fmt.Sprintf("%s/user", gs.ApiLink)
 	byte_response, _, err := gs.httpRequest("GET", uri, "", map[string]string{"Authorization": "token " + token})
 	if err != nil {
@@ -74,9 +74,9 @@ func (gs *GithubScm) SetGatewayHookUrl(gatewayHookUrl string) {
 	gs.HookURI = gatewayHookUrl
 }
 
-func (gs *GithubScm) SetHook(projectName string) (hook model.GithubHook, err error) {
+func (gs *GithubScm) SetHook(RepoName string) (hook model.GithubHook, err error) {
 	hookConf := fmt.Sprintf(hookConfFormatString, WEBHOOKNAME, gs.HookURI)
-	uri := fmt.Sprintf("%s/repos/%s/%s/hooks", gs.ApiLink, gs.User, projectName)
+	uri := fmt.Sprintf("%s/repos/%s/%s/hooks", gs.ApiLink, gs.User, RepoName)
 
 	byteResponses, _, err := gs.httpRequest(
 		"POST",
@@ -128,7 +128,7 @@ func (gs *GithubScm) GetHook(url string) (hook model.GithubHook, err error) {
 	if err != nil {
 		return
 	}
-	//Todo : one project may have multiple hooks related to our system, but now we restrict only one
+	//Todo : one Repo may have multiple hooks related to our system, but now we restrict only one
 	// should we define gitHook.Config.Url more clear? something like := gs.HookURI+"/webhook" or other...
 	for _, gitHook := range hooks {
 		if gitHook.Config.Url == gs.HookURI &&
@@ -154,7 +154,7 @@ func (gs *GithubScm) DeleteHook(url string) (err error) {
 	return
 }
 
-func (gs *GithubScm) GetProjectList() (projects []model.Project, err error) {
+func (gs *GithubScm) GetRepoList() (Repos []model.Repo, err error) {
 	//uri := fmt.Sprintf("%s/users/%s/repos", gs.ApiLink, gs.User)
 	uri := fmt.Sprintf("%s/user/repos", gs.ApiLink)
 	byteResponses, _, err := gs.httpRequest(
@@ -168,14 +168,14 @@ func (gs *GithubScm) GetProjectList() (projects []model.Project, err error) {
 	if err != nil {
 		return
 	}
-	githubProjects := []GithubProject{}
-	err = json.Unmarshal(byteResponses, &githubProjects)
+	githubRepos := []GithubRepo{}
+	err = json.Unmarshal(byteResponses, &githubRepos)
 	if err != nil {
 		return
 	}
-	projects = make([]model.Project, len(githubProjects))
-	for i := range githubProjects {
-		githubProjects[i].CopyTo(&projects[i])
+	Repos = make([]model.Repo, len(githubRepos))
+	for i := range githubRepos {
+		githubRepos[i].CopyTo(&Repos[i])
 	}
 	return
 }

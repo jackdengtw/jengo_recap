@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/util"
 )
 
@@ -15,22 +15,18 @@ const (
 	GET_USER = "/v0.2/internal_user/%s"
 )
 
-type UserStoreClientInterface interface {
-	GetUser(userId string) (user api.User02, err error)
-}
-
-type UserStoreClient struct {
+type HttpUserService struct {
 	HostPort string
 }
 
-func NewUserStoreClient(host string, port int) (uc *UserStoreClient) {
-	uc = &UserStoreClient{
+func NewHttpUserService(host string, port int) (uc *HttpUserService) {
+	uc = &HttpUserService{
 		HostPort: util.GetHostPort4Client(host, port),
 	}
 	return
 }
 
-func (c *UserStoreClient) GetUser(userId string) (user api.User02, err error) {
+func (c *HttpUserService) GetUser(userId string) (user model.User, err error) {
 	var resp *http.Response
 	var raw []byte
 	url := "http://" + c.HostPort + fmt.Sprintf(GET_USER, userId)

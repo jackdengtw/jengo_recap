@@ -12,7 +12,7 @@ type User struct {
 	Id    int
 }
 
-type GithubProject struct {
+type GithubRepo struct {
 	Id        int       `json:"id"`
 	Name      string    `json:"name"`
 	FullName  string    `json:"full_name"`
@@ -29,24 +29,25 @@ type GithubProject struct {
 	Language  string    `json:"language"`
 }
 
-func (p *GithubProject) CopyMetaTo(project *model.Project) {
-	project.Meta.Id = "p_github_" + strconv.Itoa(p.Id)
-	project.Meta.Name = p.Name
-	project.Meta.Scm = "github"
-	project.Meta.OwnerId = "u_github_" + strconv.Itoa(p.Owner.Id)
-	project.Meta.FullName = p.FullName
-	project.Meta.HtmlUrl = p.HtmlUrl
-	project.Meta.CreatedAt = p.CreatedAt
-	project.Meta.UpdatedAt = p.UpdatedAt
-	project.Meta.PushedAt = p.PushedAt
-	project.Meta.GitUrl = p.GitUrl
-	project.Meta.SshUrl = p.SshUrl
-	project.Meta.CloneUrl = p.CloneUrl
-	project.Meta.Private = p.Private
-	project.Meta.Language = p.Language
-	project.Meta.HooksUrl = p.HooksUrl
+func (p *GithubRepo) CopyRepoMetaTo(repo *model.Repo) {
+	repo.Id = "p_github_" + strconv.Itoa(p.Id)
+	repo.RepoMeta.Name = &p.Name
+	repo.ScmName = "github"
+	repo.RepoMeta.OwnerIds = []string{"u_github_" + strconv.Itoa(p.Owner.Id)}
+	repo.RepoMeta.FullName = &p.FullName
+	repo.RepoMeta.HtmlUrl = &p.HtmlUrl
+	// repo.RepoMeta.CreatedAt = p.CreatedAt
+	// repo.RepoMeta.UpdatedAt = p.UpdatedAt
+	// repo.RepoMeta.PushedAt = p.PushedAt
+	repo.RepoMeta.GitUrl = &p.GitUrl
+	repo.RepoMeta.HtmlUrl = &p.HtmlUrl
+	// repo.RepoMeta.SshUrl = p.SshUrl
+	// repo.RepoMeta.CloneUrl = p.CloneUrl
+	// repo.RepoMeta.Private = p.Private
+	// repo.RepoMeta.Language = p.Language
+	repo.RepoMeta.HooksUrl = &p.HooksUrl
 }
 
-func (p *GithubProject) CopyTo(project *model.Project) {
-	p.CopyMetaTo(project)
+func (p *GithubRepo) CopyTo(Repo *model.Repo) {
+	p.CopyRepoMetaTo(Repo)
 }

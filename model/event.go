@@ -19,6 +19,30 @@ type PushEventCommit struct {
 	Modified []string `json:"modified,omitempty"`
 }
 
+func (p *PushEventCommit) ToApiObj() *api.PushEventCommit {
+	return &p.PushEventCommit
+}
+
+func NewPushEventCommit(p api.PushEventCommit) *PushEventCommit {
+	return &PushEventCommit{PushEventCommit: p}
+}
+
+type PushEventCommits []PushEventCommit
+
+func (ps *PushEventCommits) ToApiObj() (aps api.PushEventCommits) {
+	for _, p := range *ps {
+		aps = append(aps, *p.ToApiObj())
+	}
+	return
+}
+
+func NewPushEventCommits(aps api.PushEventCommits) (ps PushEventCommits) {
+	for _, p := range aps {
+		ps = append(ps, *NewPushEventCommit(p))
+	}
+	return
+}
+
 // Timestamp represents a time that can be unmarshalled from a JSON string
 // formatted as either an RFC3339 or Unix timestamp. This is necessary for some
 // fields since the GitHub API is inconsistent in how it represents times. All

@@ -7,7 +7,7 @@ import (
 )
 
 type CreateBuildParams struct {
-	ProjectId  string `json:"project_id"`
+	RepoId     string `json:"Repo_id"`
 	UserId     string `json:"user_id"`
 	ScmUrl     string `json:"scm_url"`
 	Branch     string `json:"branch"`
@@ -17,22 +17,26 @@ type CreateBuildParams struct {
 	DiffLink   string `json:"diff_link"`
 }
 
-type DescribeBuildsParams struct {
-	ProjectId string `json:"project_id"`
-	BuildId   string `json:"Build_id"`
-	UserId    string `json:"user_id"`
-	Offset    int    `json:"offset"`
-	Limit     int    `json:"limit"`
+type CreateBuildResponse struct {
+	BuildId string `json:"build_id"`
+}
+
+type ListBuildsParams struct {
+	RepoId  string `json:"Repo_id"`
+	BuildId string `json:"Build_id"`
+	UserId  string `json:"user_id"`
+	Offset  int    `json:"offset"`
+	Limit   int    `json:"limit"`
 }
 
 type GetBuildLogParams struct {
-	Offset  int    `json:"offset"`
-	Limit   int    `json:"limit"`
-	BuildId string `json:"Build_id"`
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
+	LogUri string `json:"loguri"`
 }
 
 type EngineCreateBuildParams struct {
-	ProjectId  string               `json:"project_id"`
+	RepoId     string               `json:"Repo_id"`
 	UserId     string               `json:"user_id"`
 	EventId    string               `json:"event_id"`
 	Branch     string               `json:"branch"`
@@ -42,24 +46,20 @@ type EngineCreateBuildParams struct {
 	Compare    string               `json:"compare"`
 }
 
-type EngineDescribeBuildsParams struct {
-	ProjectId string `json:"project_id"`
-	BuildId   string `json:"Build_id"`
-	UserId    string `json:"user_id"`
-	EventId   string `json:"event_id"`
-	Offset    int    `json:"offset"`
-	Limit     int    `json:"limit"`
-}
-
-type ProjectStoreCreateBuildResponse struct {
-	BuildId string `json:"build_id"`
+type EngineListBuildsParams struct {
+	RepoId  string `json:"Repo_id"`
+	BuildId string `json:"Build_id"`
+	UserId  string `json:"user_id"`
+	EventId string `json:"event_id"`
+	Offset  int    `json:"offset"`
+	Limit   int    `json:"limit"`
 }
 
 type UpdateBuildParams struct {
 	Id         string            `bson:"_id" json:"id"`
 	EventId    string            `json:"event_id,omitempty"`
 	UserId     string            `json:"user_id,omitempty"`
-	ProjectId  string            `json:"project_id,omitempty"`
+	RepoId     string            `json:"Repo_id,omitempty"`
 	Branch     string            `json:"branch,omitempty"`
 	Status     string            `json:"status,omitempty"`
 	State      string            `json:"state,omitempty"`
@@ -73,6 +73,12 @@ type UpdateBuildParams struct {
 	BuildEnv   string            `json:"Build_env,omitempty"`
 	UpdatedAt  *time.Time        `json:"updated_at,omitempty"`
 	CreatedAt  *time.Time        `json:"created_at,omitempty"`
+}
+
+type SemanticBuildIndicator struct {
+	BuildId string
+	UserId  string
+	RepoId  string
 }
 
 type PatchBuildParams api.Build

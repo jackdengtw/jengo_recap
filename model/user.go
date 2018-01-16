@@ -32,7 +32,15 @@ func (a *Auth) ToApiAuth() *api.Auth {
 	return auth
 }
 
-// Mongo Object
+func (a *Auth) GetDecryptedToken(key string) string {
+	if t, err := util.AESDecode([]byte(key), []byte(a.Token)); err != nil {
+		glog.Errorf("Decrypt token err: %v", err)
+		return ""
+	} else {
+		return string(t)
+	}
+}
+
 type Scm struct {
 	api.ScmBase
 	AuthSourceId string `bson:"auth_source_id"` // refer to AuthSource.Id
@@ -60,7 +68,15 @@ func (s *Scm) ToApiScm() *api.Scm {
 	return scm
 }
 
-// Mongo Object User v0.2
+func (s *Scm) GetDecryptedToken(key string) string {
+	if t, err := util.AESDecode([]byte(key), []byte(s.Token)); err != nil {
+		glog.Errorf("Decrypt token err: %v", err)
+		return ""
+	} else {
+		return string(t)
+	}
+}
+
 type User struct {
 	Id        string     `bson:"_id"` // Temporarily
 	UpdatedAt *time.Time `bson:"updated_at"`
@@ -108,4 +124,13 @@ func (u *User) ToApiUser() (*api.User02, error) {
 		// user.Scms[i].Token = string(plainText)
 	}
 	return user, nil
+}
+
+func (u *User) PrimaryAuth() *Auth {
+	for _, a := range u.Auths {
+		if a.Primary {
+			return &a
+		}
+	}
+	return nil
 }

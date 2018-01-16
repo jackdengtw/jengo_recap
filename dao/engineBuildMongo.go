@@ -9,11 +9,11 @@ import (
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
-type EngineBuildDaoInterface interface {
+type EngineBuildDao interface {
 	UpdateBuildProperties(string, map[string]interface{}) error
-	InsertBuild(*model.Build) (string, error)
+	InsertBuild(model.Build) (string, error)
 	ListBuilds(map[string]interface{}, int, int) (model.Builds, error)
-	GetBuild(string) (*model.Build, error)
+	GetBuild(string) (model.Build, error)
 }
 
 type EngineBuildMongoDao struct {
@@ -21,7 +21,7 @@ type EngineBuildMongoDao struct {
 }
 
 // compile time check of implementation
-var _ EngineBuildDaoInterface = &EngineBuildMongoDao{}
+var _ EngineBuildDao = &EngineBuildMongoDao{}
 
 func (md *EngineBuildMongoDao) Init(d *MongoDao) (err error) {
 	if d == nil {
@@ -53,7 +53,7 @@ func (md *EngineBuildMongoDao) UpdateBuildProperties(BuildId string, updateData 
 	return
 }
 
-func (md *EngineBuildMongoDao) InsertBuild(build *model.Build) (id string, err error) {
+func (md *EngineBuildMongoDao) InsertBuild(build model.Build) (id string, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(engineDbName).C(buildCol)
@@ -63,7 +63,7 @@ func (md *EngineBuildMongoDao) InsertBuild(build *model.Build) (id string, err e
 	} else {
 		id = build.Id
 	}
-	err = pc.Insert(*build)
+	err = pc.Insert(build)
 	if err != nil {
 		glog.Errorf("UpsertId failed for %v %v", build.Id, err)
 
@@ -83,11 +83,11 @@ func (md *EngineBuildMongoDao) ListBuilds(query map[string]interface{}, limitCou
 	return
 }
 
-func (md *EngineBuildMongoDao) GetBuild(id string) (Build *model.Build, err error) {
+func (md *EngineBuildMongoDao) GetBuild(id string) (Build model.Build, err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(engineDbName).C(buildCol)
 	var r model.Build
 	err = pc.FindId(id).One(&r)
-	return &r, err
+	return r, err
 }

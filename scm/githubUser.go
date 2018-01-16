@@ -1,10 +1,11 @@
-package model
+package scm
 
 import (
 	"strconv"
 	"time"
 
 	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/model"
 )
 
 type GithubUser struct {
@@ -44,15 +45,15 @@ type GithubUser struct {
 	*/
 }
 
-func (u *GithubUser) ToMongoUser() (mongoUser *User) {
-	mongoUser = &User{}
+func (u *GithubUser) ToMongoUser() (mongoUser *model.User) {
+	mongoUser = &model.User{}
 	// TODO: A new way to generate user id
 	timeNow := time.Now().UTC()
 	mongoUser.Id = "u_github_" + strconv.Itoa(u.Id)
 	mongoUser.CreatedAt = &timeNow
 	mongoUser.UpdatedAt = &timeNow
-	mongoUser.Auths = []Auth{
-		Auth{
+	mongoUser.Auths = []model.Auth{
+		model.Auth{
 			AuthBase: api.AuthBase{
 				Id:          "u_github_" + strconv.Itoa(u.Id),
 				OriginId:    strconv.Itoa(u.Id),
@@ -67,8 +68,8 @@ func (u *GithubUser) ToMongoUser() (mongoUser *User) {
 			// Ignore token here
 		},
 	}
-	mongoUser.Scms = []Scm{
-		Scm{
+	mongoUser.Scms = []model.Scm{
+		model.Scm{
 			ScmBase: api.ScmBase{
 				Id:          mongoUser.Id,
 				OriginId:    strconv.Itoa(u.Id),

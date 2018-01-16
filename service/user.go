@@ -10,20 +10,27 @@ import (
 	"gopkg.in/mgo.v2"
 )
 
-type UserServiceInterface interface {
+type UserReader interface {
+	GetUser(userId string) (model.User, error)
+	GetUserByLogin(loginName string, auth string) (model.User, error)
+}
+
+type UserWriter interface {
 	CreateUser(loginName string, auth string, token string) (userId string, err error)
-
-	GetUser(userId string) (*model.ApiUser, error)
-
-	GetUserByLogin(loginName string, auth string) (*model.ApiUser, error)
-
 	UpdateScmToken(userId, scmId, tokenStr string) error
 }
 
-type UserService struct {
-	Md        *dao.UserMongoDao
-	GithubScm *scm.GithubScm
+type UserService interface {
+	UserReader
+	UserWriter
 }
+
+type LocalUserService struct {
+	Md        dao.UserDao
+	GithubScm scm.Scm
+}
+
+var _ UserService = &LocalUserService{}
 
 /*
  * Service layer encapsulates biz logic, leaving only HTTP protocol input/output to handler layer
@@ -37,7 +44,7 @@ type UserService struct {
  * 2. service logging what happened internals
  */
 
-func (u *UserService) CreateUser(loginName string, auth string, token string) (userId string, err error) {
+func (u *LocalUserService) CreateUser(loginName string, auth string, token string) (userId string, err error) {
 	_, err = u.Md.GetUserByLogin(loginName, auth)
 	if err == nil {
 		glog.Warningf("user EXIST ALREADY: %v@%v", loginName, auth)
@@ -50,7 +57,7 @@ func (u *UserService) CreateUser(loginName string, auth string, token string) (u
 		return
 	} else {
 		if auth == api.AUTH_SOURCE_GITHUB {
-			userScm, err1 := u.GithubScm.GetGithubUser(token)
+			userScm, err1 := u.GithubScm.GetUser(token)
 			if err1 != nil {
 				glog.Errorf("failed, err when get user from scm", loginName, err1)
 				err = ScmError
@@ -65,13 +72,13 @@ func (u *UserService) CreateUser(loginName string, auth string, token string) (u
 				return
 			}
 
-			err = u.Md.CreateUser(user)
+			err = u.Md.UpsertUser(user)
 			if err != nil {
 				glog.Errorf("failed, err when insert to Mongo", loginName, err)
 				err = MongoError
 				return
 			}
-			userId = user.UserId
+			userId = user.Id
 			glog.Infof("insert user %s to db success", userId)
 		} else {
 			glog.Warningf("Not supported auth: %v", auth)
@@ -82,8 +89,7 @@ func (u *UserService) CreateUser(loginName string, auth string, token string) (u
 	return
 }
 
-func (u *UserService) GetUser(userId string) (apiUser *model.ApiUser, err error) {
-	var user model.User
+func (u *LocalUserService) GetUser(userId string) (user model.User, err error) {
 	user, err = u.Md.GetUser(userId)
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -97,17 +103,10 @@ func (u *UserService) GetUser(userId string) (apiUser *model.ApiUser, err error)
 		}
 	}
 	glog.Info("user found")
-
-	if apiUser, err = user.ToApiUser(); err != nil {
-		glog.Error("Transform to api object failed", err)
-		err = DataTransformError
-		return
-	}
 	return
 }
 
-func (u *UserService) GetUserByLogin(loginName string, auth string) (apiUser *model.ApiUser, err error) {
-	var user *model.User
+func (u *LocalUserService) GetUserByLogin(loginName string, auth string) (user model.User, err error) {
 	user, err = u.Md.GetUserByLogin(loginName, auth)
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -121,16 +120,11 @@ func (u *UserService) GetUserByLogin(loginName string, auth string) (apiUser *mo
 		}
 	}
 
-	if apiUser, err = user.ToApiUser(); err != nil {
-		glog.Error("Transform to api object failed", err)
-		err = DataTransformError
-		return
-	}
 	glog.Info("get user by login success!")
 	return
 }
 
-func (u *UserService) UpdateScmToken(userId, scmId, tokenStr string) (err error) {
+func (u *LocalUserService) UpdateScmToken(userId, scmId, tokenStr string) (err error) {
 	var user model.User
 	user, err = u.Md.GetUser(userId)
 	if err == mgo.ErrNotFound {
