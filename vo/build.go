@@ -1,4 +1,4 @@
-package api
+package vo
 
 import (
 	"time"
@@ -12,6 +12,7 @@ type SemanticBuild struct {
 	RepoId   string `json:"repo_id"`
 	CommitId string `json:"commit_id"`
 	Branch   string `json:"branch"`
+	Index    int
 
 	UserId string `json:"user_id"`
 
@@ -26,6 +27,7 @@ type Build struct {
 	Id     string `json:"id" bson:"_id"`
 	Status string `json:"status"`
 	Result string `json:"result"`
+	Index  int
 
 	// duplicate info in SemanticBuild for now. Later on remove Semantic Build
 	RepoId   string `json:"repo_id"`

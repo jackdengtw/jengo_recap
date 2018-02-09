@@ -7,7 +7,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/util"
@@ -91,7 +91,7 @@ var _ = Describe("Test User Service", func() {
 						Id: userId,
 						Auths: []model.Auth{
 							model.Auth{
-								AuthBase: api.AuthBase{
+								AuthBase: vo.AuthBase{
 									LoginName: "existed",
 									Primary:   true,
 								},
@@ -100,7 +100,7 @@ var _ = Describe("Test User Service", func() {
 						},
 						Scms: []model.Scm{
 							model.Scm{
-								ScmBase: api.ScmBase{
+								ScmBase: vo.ScmBase{
 									Id: "u_github_123",
 								},
 							},

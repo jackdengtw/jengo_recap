@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
@@ -37,7 +37,7 @@ var _ UserService = &LocalUserService{}
  *
  * It makes possible
  * 1. functional test for service method in UT form as regression test.
- * 2. RESTful api protocol test in handler level with mocked services.
+ * 2. RESTful vo protocol test in handler level with mocked services.
  *
  * It requires
  * 1. An error translation
@@ -56,7 +56,7 @@ func (u *LocalUserService) CreateUser(loginName string, auth string, token strin
 		err = MongoError
 		return
 	} else {
-		if auth == api.AUTH_SOURCE_GITHUB {
+		if auth == vo.AUTH_SOURCE_GITHUB {
 			userScm, err1 := u.GithubScm.GetUser(token)
 			if err1 != nil {
 				glog.Errorf("failed, err when get user from scm", loginName, err1)
@@ -65,7 +65,7 @@ func (u *LocalUserService) CreateUser(loginName string, auth string, token strin
 			}
 			glog.Info("Got user from scm is ", userScm.Id)
 			user := userScm.ToMongoUser()
-			err = user.SetTokenEncrypted(api.AUTH_SOURCE_GITHUB, util.KeyCoder, token)
+			err = user.SetTokenEncrypted(vo.AUTH_SOURCE_GITHUB, util.KeyCoder, token)
 			if err != nil {
 				glog.Errorf("Encrypt token error: %v", err)
 				err = EncryptError

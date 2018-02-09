@@ -3,7 +3,7 @@ package model
 import (
 	"testing"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/util"
 )
 
@@ -40,8 +40,8 @@ func TestToApiUser(t *testing.T) {
 		Id: "123",
 		Auths: []Auth{
 			Auth{
-				AuthSourceId: api.AUTH_SOURCE_GITHUB,
-				AuthBase: api.AuthBase{
+				AuthSourceId: vo.AUTH_SOURCE_GITHUB,
+				AuthBase: vo.AuthBase{
 					Primary: true,
 				},
 			},
@@ -51,11 +51,11 @@ func TestToApiUser(t *testing.T) {
 		},
 		Scms: []Scm{
 			Scm{
-				AuthSourceId: api.AUTH_SOURCE_GITHUB,
+				AuthSourceId: vo.AUTH_SOURCE_GITHUB,
 			},
 		},
 	}
-	user.SetTokenEncrypted(api.AUTH_SOURCE_GITHUB, util.KeyCoder, token)
+	user.SetTokenEncrypted(vo.AUTH_SOURCE_GITHUB, util.KeyCoder, token)
 
 	tmp, _ := util.AESEncode([]byte(util.KeyCoder), []byte(token))
 	if string(user.Auths[0].Token) != string(tmp) {
@@ -64,7 +64,7 @@ func TestToApiUser(t *testing.T) {
 
 	if u, err := user.ToApiUser(); err != nil {
 		t.Fatalf("ToApiUser failed: %v", err)
-	} else if u.Auth.AuthSource.Name != api.AUTH_SOURCE_GITHUB {
+	} else if u.Auth.AuthSource.Name != vo.AUTH_SOURCE_GITHUB {
 		t.Error("auth source not initialized. %v", u)
 	}
 }

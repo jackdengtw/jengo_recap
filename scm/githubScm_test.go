@@ -24,26 +24,22 @@ func compareStringArray(a1, a2 []string) bool {
 	return true
 }
 
-func compareProject(pp1, pp2 model.Project) (res bool) {
-	p1 := pp1.Project
-	p2 := pp2.Project
-	if p1.Meta != p2.Meta ||
-		p1.Enable != p2.Enable ||
-		p1.LatestBuildId != p2.LatestBuildId ||
-		p1.RunIndex != p2.RunIndex ||
-		p1.State != p2.State ||
+func compareRepo(p1, p2 model.Repo) (res bool) {
+	if p1.RepoMeta != p2.RepoMeta ||
+		p1.Enabled != p2.Enabled ||
+		p1.BuildIndex != p2.BuildIndex ||
 		compareStringArray(p1.Branches, p2.Branches) ||
-		compareStringArray(p1.Users, p2.Users) {
+		compareStringArray(p1.OwnerIds, p2.OwnerIds) {
 		res = false
 		return
 	}
 	return true
 }
 
-func getProjectByIndex(idx int) (githubProject GithubProject) {
+func getRepoByIndex(idx int) (githubRepo GithubRepo) {
 	t := time.Now().UTC()
 	idxStr := strconv.Itoa(idx)
-	githubProject = GithubProject{
+	githubRepo = GithubRepo{
 		1000 + idx,
 		"testName_" + idxStr,
 		"testUser/testName_" + idxStr,
@@ -59,17 +55,17 @@ func getProjectByIndex(idx int) (githubProject GithubProject) {
 		idx%2 == 1,
 		"golang" + idxStr,
 	}
-	return githubProject
+	return githubRepo
 }
 
-func TestGithubScm_GetProjectList(t *testing.T) {
+func TestGithubScm_GetRepoList(t *testing.T) {
 
-	githubProjects := [3]GithubProject{}
+	githubRepos := [3]GithubRepo{}
 	for i := 0; i < 3; i++ {
-		githubProjects[i] = getProjectByIndex(i)
+		githubRepos[i] = getRepoByIndex(i)
 	}
 	testServer := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		pBytes, _ := json.Marshal(githubProjects)
+		pBytes, _ := json.Marshal(githubRepos)
 		fmt.Println(string(pBytes))
 		w.Write(pBytes)
 		w.WriteHeader(200)
@@ -79,21 +75,21 @@ func TestGithubScm_GetProjectList(t *testing.T) {
 	defer testServer.Close()
 	githubScm := NewGithubScm("www.hooks_html.com")
 	githubScm.SetApiLink(testServer.URL)
-	projects, err := githubScm.GetProjectList()
+	Repos, err := githubScm.GetRepoList()
 	if err != nil {
 		t.Fatal("get err:", err, testServer.URL)
 	}
-	if len(projects) != 3 {
-		t.Fatal("len of projects not 1")
+	if len(Repos) != 3 {
+		t.Fatal("len of Repos not 1")
 	}
-	expProjects := [3]model.Project{}
+	expRepos := [3]model.Repo{}
 	for i := 0; i < 3; i++ {
-		githubProjects[i].CopyTo(&expProjects[i])
-		if compareProject(expProjects[i], projects[i]) {
-			t.Fatal(expProjects[i], projects[i])
+		githubRepos[i].CopyTo(&expRepos[i])
+		if compareRepo(expRepos[i], Repos[i]) {
+			t.Fatal(expRepos[i], Repos[i])
 		}
 	}
 
-	str, _ := json.Marshal(projects)
+	str, _ := json.Marshal(Repos)
 	fmt.Println(string(str))
 }

@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 )
 
 type CreateBuildParams struct {
@@ -36,7 +36,7 @@ type GetBuildLogParams struct {
 }
 
 type EngineCreateBuildParams struct {
-	RepoId     string               `json:"Repo_id"`
+	// RepoId     string               `json:"Repo_id"`
 	UserId     string               `json:"user_id"`
 	EventId    string               `json:"event_id"`
 	Branch     string               `json:"branch"`
@@ -48,7 +48,6 @@ type EngineCreateBuildParams struct {
 
 type EngineListBuildsParams struct {
 	RepoId  string `json:"Repo_id"`
-	BuildId string `json:"Build_id"`
 	UserId  string `json:"user_id"`
 	EventId string `json:"event_id"`
 	Offset  int    `json:"offset"`
@@ -81,4 +80,4 @@ type SemanticBuildIndicator struct {
 	RepoId  string
 }
 
-type PatchBuildParams api.Build
+type PatchBuildParams vo.Build

@@ -4,9 +4,89 @@ import (
 	// "sort"
 	// "testing"
 
-	// "github.com/qetuantuan/jengo_recap/api"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"gopkg.in/mgo.v2/bson"
+
+	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
 )
+
+type mockBuildDao_testRepo struct {
+	Sb *model.SemanticBuild // keep one in mem is enough for now
+}
+
+func (m *mockBuildDao_testRepo) FindSemanticBuildByBranchCommit(repoId, commitId, branch string) (sbuild model.SemanticBuild, err error) {
+	if m.Sb != nil {
+		sbuild = *m.Sb
+	} else {
+		err = dao.ErrorBuildNotFound
+	}
+	return
+}
+
+func (m *mockBuildDao_testRepo) GetSemanticBuilds(sbuildIds []string) (sbuilds model.SemanticBuilds, err error) {
+	if m.Sb != nil {
+		sbuilds = append(sbuilds, *m.Sb)
+	}
+	return
+}
+
+func (m *mockBuildDao_testRepo) GetSemanticBuildsByFilter(filter map[string]interface{}, limitCount, offset int) (sbuilds model.SemanticBuilds, err error) {
+	return
+}
+
+func (m *mockBuildDao_testRepo) IsBuildExistInSemanticBuild(buildId, sBuildId string) (res bool, err error) {
+	return
+}
+
+func (m *mockBuildDao_testRepo) CreateSemanticBuild(b model.SemanticBuild) (id string, err error) {
+	m.Sb = &model.SemanticBuild{
+		Id: bson.NewObjectId().Hex(),
+	}
+	id = m.Sb.Id
+	return
+}
+
+func (m *mockBuildDao_testRepo) InsertBuild(sbuildId string, build model.Build) (err error) {
+	if m.Sb != nil {
+		m.Sb.Builds = append(m.Sb.Builds, build)
+	} else {
+		err = dao.ErrorBuildNotFound
+	}
+	return
+}
+
+func (m *mockBuildDao_testRepo) UpdateBuildProperties(sBuildId string, buildId string, p map[string]interface{}) (err error) {
+	return
+}
+
+func (m *mockBuildDao_testRepo) UpdateBuildLog(sbuildId, buildId string, logId string) (err error) {
+	return
+}
+
+type mockRepoDao_testRepo struct {
+	R *model.Repo
+}
+
+func (m *mockRepoDao_testRepo) GetRepo(id string) (Repo model.Repo, err error) { return }
+func (m *mockRepoDao_testRepo) GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []model.Repo, err error) {
+	return
+}
+
+func (m *mockRepoDao_testRepo) GetReposByScms(userId string, scms []string) (Repos []model.Repo, err error) {
+	return
+}
+
+func (m *mockRepoDao_testRepo) GetRepos(userId string, limitCount, offset int) (Repos []model.Repo, err error) {
+	return
+}
+func (m *mockRepoDao_testRepo) GetBuildIndex(id string) (idx int, err error) { return }
+
+func (m *mockRepoDao_testRepo) UpsertRepoMeta(Repos []model.Repo, userId string) (err error) { return }
+func (m *mockRepoDao_testRepo) UpdateDynamicRepoInfo(id, branch string) (err error)          { return }
+func (m *mockRepoDao_testRepo) SwitchRepo(id string, enableStatus bool) (err error)          { return }
+func (m *mockRepoDao_testRepo) UnlinkRepos(Repos []model.Repo, userId string) (err error)    { return }
 
 type projectsTestData struct {
 	N       map[string]*model.Repo
@@ -15,6 +95,29 @@ type projectsTestData struct {
 	ExpectU []model.Repo
 	ExpectI []model.Repo
 }
+
+var _ = Describe("Test Repo Service", func() {
+	Describe("Create a Repo", func() {
+		var (
+			service *LocalRepoService
+			err     error
+		)
+		BeforeEach(func() {
+			service = &LocalRepoService{
+				Md:      &mockRepoDao_testRepo{},
+				BuildMd: &mockBuildDao_testRepo{},
+			}
+			// sbuild1, err = service.InsertBuild(b)
+		})
+		It("Should return success", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("Should be able to get the build", func() {
+			// builds, err := service.GetSemanticBuildsByIds([]string{sbuild1.Id})
+			Expect(err).NotTo(HaveOccurred())
+		})
+	})
+})
 
 /*
 func CompareRepoSet(actual, expected []model.Repo) bool {
@@ -34,26 +137,26 @@ func TestSyncRepoSet(t *testing.T) {
 	tdata := []projectsTestData{
 		projectsTestData{
 			N: map[string]*model.Repo{
-				"e1": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "e1"}}},
-				"d1": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d1"}}},
-				"d3": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d3"}}},
+				"e1": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "e1"}}},
+				"d1": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d1"}}},
+				"d3": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d3"}}},
 			},
 			O: map[string]*model.Repo{
-				"e1": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "e1"}}},
-				"d1": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d1"}}},
-				"e2": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "e2"}}},
-				"d2": &model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d2"}}},
+				"e1": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "e1"}}},
+				"d1": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d1"}}},
+				"e2": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "e2"}}},
+				"d2": &model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d2"}}},
 			},
 			ExpectD: []model.Repo{
-				model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "e2"}}},
-				model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d2"}}},
+				model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "e2"}}},
+				model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d2"}}},
 			},
 			ExpectU: []model.Repo{
-				model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "e1"}}},
-				model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d1"}}},
+				model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "e1"}}},
+				model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d1"}}},
 			},
 			ExpectI: []model.Repo{
-				model.Repo{Repo: api.Repo{Meta: api.RepoMeta{Id: "d3"}}},
+				model.Repo{Repo: vo.Repo{Meta: vo.RepoMeta{Id: "d3"}}},
 			},
 		},
 	}

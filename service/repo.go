@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
@@ -13,13 +13,13 @@ import (
 )
 
 type RepoReader interface {
-	GetRepo(RepoId string) (Repo api.Repo, err error)
-	GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []api.Repo, err error)
+	GetRepo(RepoId string) (Repo model.Repo, err error)
+	GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []vo.Repo, err error)
 	//GetRepos(userId string) (Repo *dao.Repo, err error)
 }
 
 type RepoWriter interface {
-	UpdateRepos(userId string) (Repos []api.Repo, err error)
+	UpdateRepos(userId string) (Repos []model.Repo, err error)
 	SwitchRepo(userId, repoId string, enableStatus bool) (err error)
 }
 
@@ -29,10 +29,13 @@ type RepoService interface {
 }
 
 type LocalRepoService struct {
-	Md             *dao.RepoMongoDao
+	Md             dao.RepoDao
+	BuildMd        dao.SemanticBuildDao
 	GithubScm      *scm.GithubScm
 	HttpUserClient UserService
 }
+
+var _ RepoService = &LocalRepoService{}
 
 /*
 func getUserRemotely(userId string) (user User, err error) {
@@ -173,7 +176,7 @@ func (p *LocalRepoService) UpdateRepos(userId string) (Repos []model.Repo, err e
 	return
 }
 
-func (p *LocalRepoService) GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []model.Repo, err error) {
+func (p *LocalRepoService) GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []vo.Repo, err error) {
 	var repos []model.Repo
 	repos, err = p.Md.GetReposByFilter(filter, limitCount, offset)
 	if err != nil {
@@ -182,8 +185,10 @@ func (p *LocalRepoService) GetReposByFilter(filter map[string]interface{}, limit
 		return
 	}
 	for _, p := range repos {
-		Repos = append(Repos, p)
+		Repos = append(Repos, *p.ToApiObj())
 	}
+	// TODO: query build dao for latest build id and latest state
+	//       add global cache layer to optimization later on
 	return
 }
 func (p *LocalRepoService) SwitchRepo(userId, RepoId string, enableStatus bool) (err error) {

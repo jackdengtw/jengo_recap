@@ -1,9 +1,9 @@
-package api
+// TODO: rename to ViewObject
+package vo
 
 type RepoMeta struct {
-	OriginId string   `json: origin_id`
-	OwnerIds []string `json:"owner_ids"` // userId in Jengo
-	ScmName  string   `json:"scm_name"`
+	OriginId string `json: origin_id`
+	ScmName  string `json:"scm_name"`
 
 	Name     *string `json:"name,omitempty"`
 	FullName *string `json:"full_name,omitempty"`
@@ -19,11 +19,11 @@ type Repo struct {
 	Id      string `json:"id" bson:"_id"` // repoId in Jengo
 	Enabled bool   `json:"enabled"`
 
-	UserIds       []string `json:"user_ids" bson:"user_ids"` // userId in Jengo
-	Branches      []string `json:"branches"`
-	State         string   `json:"state"`
-	LatestBuildId string
+	OwnerIds []string `json:"owner_ids"`                // userId in Jengo
+	UserIds  []string `json:"user_ids" bson:"user_ids"` // userId in Jengo
+	Branches []string `json:"branches"`
 
-	// TODO: move this out of API obj
-	BuildIndex int
+	// from Build
+	State         string `json:"state"`
+	LatestBuildId string
 }

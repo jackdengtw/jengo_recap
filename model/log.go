@@ -1,16 +1,16 @@
 package model
 
 import (
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 )
 
-type BuildLog api.BuildLog
+type BuildLog vo.BuildLog
 
-func (r *BuildLog) ToApiObj() *api.BuildLog {
-	return (*api.BuildLog)(r)
+func (r *BuildLog) ToApiObj() *vo.BuildLog {
+	return (*vo.BuildLog)(r)
 }
 
 // Note: Shadow Copy
-func NewBuildLogFrom(r *api.BuildLog) *BuildLog {
+func NewBuildLogFrom(r *vo.BuildLog) *BuildLog {
 	return (*BuildLog)(r)
 }

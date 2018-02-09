@@ -54,7 +54,7 @@ type GithubScm struct {
 
 func NewGithubScm(hookUrl string) *GithubScm {
 	gs := GithubScm{scm: "github"}
-	gs.ApiLink = "https://api.github.com"
+	gs.ApiLink = "https://vo.github.com"
 	gs.HookURI = hookUrl
 	return &gs
 }
@@ -145,8 +145,8 @@ func (gs *GithubScm) GetHook(url string) (hook model.GithubHook, err error) {
 }
 
 // for http test
-func (gs *GithubScm) SetApiLink(apilink string) {
-	gs.ApiLink = apilink
+func (gs *GithubScm) SetApiLink(volink string) {
+	gs.ApiLink = volink
 }
 
 func (gs *GithubScm) DeleteHook(url string) (err error) {

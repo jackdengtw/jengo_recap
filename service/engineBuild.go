@@ -2,6 +2,7 @@ package service
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 
 	"github.com/golang/glog"
@@ -27,8 +28,8 @@ type EngineBuildService interface {
 }
 
 type LocalEngineBuildService struct {
-	BuildDao dao.EngineBuildDao
-	Queue    queue.TaskQueue
+	Md    dao.EngineBuildDao
+	Queue queue.TaskQueue
 }
 
 func (s *LocalEngineBuildService) CreateBuild(params *model.EngineCreateBuildParams) (string, error) {
@@ -43,7 +44,13 @@ func (s *LocalEngineBuildService) CreateBuild(params *model.EngineCreateBuildPar
 
 	now := time.Now().UTC()
 	var Build = &model.Build{
-		RepoId:     params.RepoId,
+		// FIXME
+		// map params repo id and user id
+		//   to jengo repo id and user id
+		// fix after user client and repo client tested
+		UserId: params.UserId,
+		RepoId: strconv.Itoa(*params.Repo.ID),
+
 		EventId:    &params.EventId,
 		Status:     constant.BUILD_PRESTART,
 		CreatedAt:  &now,
@@ -51,10 +58,12 @@ func (s *LocalEngineBuildService) CreateBuild(params *model.EngineCreateBuildPar
 		Branch:     params.Branch,
 		Commits:    params.Commits,
 		HeadCommit: params.HeadCommit,
-		UserId:     params.UserId,
 	}
 	glog.Infof("model.Build: %v", Build)
-	buildId, err = s.BuildDao.InsertBuild(*Build)
+	// TODO: get repo index here
+	//    	 put to build obj
+	// buildNo, err = r.RepoMd.GetBuildIndex(build.RepoId)
+	buildId, err = s.Md.InsertBuild(*Build)
 	if err != nil {
 		glog.Errorf("Failed to update Build status as finished. Error is %v", err)
 		return "", err
@@ -80,22 +89,18 @@ func (s *LocalEngineBuildService) ListBuilds(p *model.EngineListBuildsParams) (m
 	query := make(map[string]interface{})
 
 	if p.RepoId != "" {
-		query["Build.Repoid"] = p.RepoId
+		query["repoid"] = p.RepoId
 	}
 
 	if p.UserId != "" {
-		query["Build.userid"] = p.UserId
-	}
-
-	if p.BuildId != "" {
-		query["Build._id"] = p.BuildId
+		query["userid"] = p.UserId
 	}
 
 	if p.EventId != "" {
-		query["Build.eventid"] = p.EventId
+		query["eventid"] = p.EventId
 	}
 
-	Builds, err := s.BuildDao.ListBuilds(query, p.Limit, p.Offset)
+	Builds, err := s.Md.ListBuilds(query, p.Limit, p.Offset)
 	if err != nil {
 		glog.Errorf("List builds err: %v", err)
 		return nil, err
@@ -105,7 +110,7 @@ func (s *LocalEngineBuildService) ListBuilds(p *model.EngineListBuildsParams) (m
 }
 
 func (s *LocalEngineBuildService) GetBuild(buildId string) (model.Build, error) {
-	build, err := s.BuildDao.GetBuild(buildId)
+	build, err := s.Md.GetBuild(buildId)
 	if err != nil {
 		glog.Errorf("Get Build error: %v", err)
 		return model.Build{}, err

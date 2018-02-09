@@ -24,7 +24,7 @@ var _ = Describe("Log Mongo dao", func() {
 				}
 
 				expected = &model.BuildLog{
-					Content: contentStr,
+					Content: []byte(contentStr),
 				}
 
 				lmdao = &LogMongoDao{}

@@ -8,9 +8,34 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
+type SemanticBuildReader interface {
+	FindSemanticBuildByBranchCommit(repoId, commitId, branch string) (sbuild model.SemanticBuild, err error)
+	GetSemanticBuilds(sbuildIds []string) (sbuilds model.SemanticBuilds, err error)
+	GetSemanticBuildsByFilter(filter map[string]interface{}, limitCount, offset int) (sbuilds model.SemanticBuilds, err error)
+	IsBuildExistInSemanticBuild(buildId, sBuildId string) (res bool, err error)
+}
+
+type SemanticBuildWriter interface {
+	CreateSemanticBuild(b model.SemanticBuild) (id string, err error)
+}
+
+type BuildWriter interface {
+	InsertBuild(sbuildId string, build model.Build) (err error)
+	UpdateBuildProperties(sBuildId string, buildId string, p map[string]interface{}) (err error)
+	UpdateBuildLog(sbuildId, buildId string, logId string) (err error)
+}
+
+type SemanticBuildDao interface {
+	SemanticBuildReader
+	SemanticBuildWriter
+	BuildWriter
+}
+
 type SemanticBuildMongoDao struct {
 	MongoDao
 }
+
+var _ SemanticBuildDao = &SemanticBuildMongoDao{}
 
 func (md *SemanticBuildMongoDao) Init(d *MongoDao) (err error) {
 	if d == nil {

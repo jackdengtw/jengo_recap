@@ -4,7 +4,7 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
@@ -25,7 +25,7 @@ var _ = Describe("User Mongo dao", func() {
 					Id: expectedId,
 					Auths: []model.Auth{
 						model.Auth{
-							AuthBase: api.AuthBase{
+							AuthBase: vo.AuthBase{
 								Id:        "auth1",
 								LoginName: "login1",
 								Primary:   true,

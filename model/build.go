@@ -3,17 +3,18 @@ package model
 import (
 	"time"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 )
 
 // Build
-// type Build api.Build
+// type Build vo.Build
 type Build struct {
 	Id     string `json:"id" bson:"_id"`
 	Status string `json:"status"`
+	Index  int
 	Result string `json:"result"`
 
-	// duplicate info in SemanticBuild for now. Later on remove Semantic Build
+	// duplicate info in SemanticBuil for now. Later on remove Semantic Build
 	RepoId   string `json:"repo_id"`
 	CommitId string `json:"commit_id"`
 	Branch   string `json:"branch"`
@@ -30,8 +31,8 @@ type Build struct {
 	Duration  *time.Duration `json:"duration,omitempty"`
 }
 
-func (b *Build) ToApiObj() *api.Build {
-	return &api.Build{
+func (b *Build) ToApiObj() *vo.Build {
+	return &vo.Build{
 		Id:         b.Id,
 		Status:     b.Status,
 		Result:     b.Result,
@@ -51,7 +52,7 @@ func (b *Build) ToApiObj() *api.Build {
 }
 
 // Note: Shadow Copy
-func NewBuildFrom(b *api.Build) *Build {
+func NewBuildFrom(b *vo.Build) *Build {
 	return &Build{
 		Id:         b.Id,
 		Status:     b.Status,
@@ -74,7 +75,7 @@ func NewBuildFrom(b *api.Build) *Build {
 // Builds
 type Builds []Build
 
-func (bs Builds) ToApiObj() (builds api.Builds) {
+func (bs Builds) ToApiObj() (builds vo.Builds) {
 	for _, b := range bs {
 		builds = append(builds, *b.ToApiObj())
 	}
@@ -82,7 +83,7 @@ func (bs Builds) ToApiObj() (builds api.Builds) {
 }
 
 // Note: Shadow Copy
-func NewBuildsFrom(bs api.Builds) (builds Builds) {
+func NewBuildsFrom(bs vo.Builds) (builds Builds) {
 	for _, b := range bs {
 		builds = append(builds, *NewBuildFrom(&b))
 	}
@@ -90,7 +91,7 @@ func NewBuildsFrom(bs api.Builds) (builds Builds) {
 }
 
 // SemanticBuild
-// a copy of api.SemanticBuild
+// a copy of vo.SemanticBuild
 type SemanticBuild struct {
 	// Id is hash value from repoId, branch and commitId
 	Id       string `json:"id" bson:"_id"`
@@ -105,8 +106,8 @@ type SemanticBuild struct {
 	Builds Builds `json:"builds"`
 }
 
-func (b *SemanticBuild) ToApiObj() *api.SemanticBuild {
-	apiObj := api.SemanticBuild{
+func (b *SemanticBuild) ToApiObj() *vo.SemanticBuild {
+	voObj := vo.SemanticBuild{
 		Id:       b.Id,
 		RepoId:   b.RepoId,
 		CommitId: b.CommitId,
@@ -115,11 +116,11 @@ func (b *SemanticBuild) ToApiObj() *api.SemanticBuild {
 		Numero:   b.Numero,
 		Builds:   b.Builds.ToApiObj(),
 	}
-	return &apiObj
+	return &voObj
 }
 
 // Note: Shadow Copy
-func NewSemanticBuildFrom(b *api.SemanticBuild) *SemanticBuild {
+func NewSemanticBuildFrom(b *vo.SemanticBuild) *SemanticBuild {
 	sbuild := SemanticBuild{
 		Id:       b.Id,
 		RepoId:   b.RepoId,
@@ -135,7 +136,7 @@ func NewSemanticBuildFrom(b *api.SemanticBuild) *SemanticBuild {
 // Semantic
 type SemanticBuilds []SemanticBuild
 
-func (bs SemanticBuilds) ToApiObj() (builds api.SemanticBuilds) {
+func (bs SemanticBuilds) ToApiObj() (builds vo.SemanticBuilds) {
 	for _, b := range bs {
 		builds = append(builds, *b.ToApiObj())
 	}
@@ -143,7 +144,7 @@ func (bs SemanticBuilds) ToApiObj() (builds api.SemanticBuilds) {
 }
 
 // Note: Shadow Copy
-func NewSemanticBuildsFrom(bs api.SemanticBuilds) (builds SemanticBuilds) {
+func NewSemanticBuildsFrom(bs vo.SemanticBuilds) (builds SemanticBuilds) {
 	for _, b := range bs {
 		builds = append(builds, *NewSemanticBuildFrom(&b))
 	}

@@ -10,9 +10,31 @@ import (
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
+type RepoReader interface {
+	GetRepo(id string) (Repo model.Repo, err error)
+	GetReposByFilter(filter map[string]interface{}, limitCount, offset int) (Repos []model.Repo, err error)
+	GetReposByScms(userId string, scms []string) (Repos []model.Repo, err error)
+	GetRepos(userId string, limitCount, offset int) (Repos []model.Repo, err error)
+	GetBuildIndex(id string) (idx int, err error)
+}
+
+type RepoWriter interface {
+	UpsertRepoMeta(Repos []model.Repo, userId string) (err error)
+	UpdateDynamicRepoInfo(id, branch string) (err error)
+	SwitchRepo(id string, enableStatus bool) (err error)
+	UnlinkRepos(Repos []model.Repo, userId string) (err error)
+}
+
+type RepoDao interface {
+	RepoReader
+	RepoWriter
+}
+
 type RepoMongoDao struct {
 	MongoDao
 }
+
+var _ RepoDao = &RepoMongoDao{}
 
 func (md *RepoMongoDao) Init(d *MongoDao) (err error) {
 	if d == nil {
@@ -138,23 +160,25 @@ func (md *RepoMongoDao) SwitchRepo(id string, enableStatus bool) (err error) {
 /*
 	Update Repo dynamic info. including: state latestBuildId, branch
 */
-func (md *RepoMongoDao) UpdateDynamicRepoInfo(id, state, latestBuildId, branch string) (err error) {
+func (md *RepoMongoDao) UpdateDynamicRepoInfo(id, branch string) (err error) {
 	session := md.GSession.Copy()
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
 	updateMap := bson.M{}
 
-	setMap := bson.M{}
-	if state != "" {
-		setMap["state"] = state
-	}
-	if latestBuildId != "" {
-		setMap["latestbuildid"] = latestBuildId
-	}
-	if len(setMap) != 0 {
-		updateMap["$set"] = setMap
-	}
+	/*
+		setMap := bson.M{}
+		if state != "" {
+			setMap["state"] = state
+		}
+		if latestBuildId != "" {
+			setMap["latestbuildid"] = latestBuildId
+		}
+		if len(setMap) != 0 {
+			updateMap["$set"] = setMap
+		}
 
+	*/
 	addToSetMap := bson.M{}
 	if branch != "" {
 		addToSetMap["branches"] = branch

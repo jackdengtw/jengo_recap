@@ -1,20 +1,20 @@
-package api
+package vo
 
 // TODO: move log struct out of API object.
 // Log should be bytes and as payload of http response.
 type BuildLog struct {
 	Id string `json:"id" bson:"_id"`
 
-	FileName string `json:"file_name"`
-	Content  string `bson:"content"`
+	Content []byte `bson:"content"`
 
 	// TODO:
+	// use an object storage
 	// url string
-	// time stampe
+	// time stamp
 }
 
 type GetBuildLogParams struct {
-	Offset  int    `json:"offset"`
-	Limit   int    `json:"limit"`
-	BuildId string `json:"build_id"`
+	Offset int    `json:"offset"`
+	Limit  int    `json:"limit"`
+	Uri    string `json:"uri"`
 }

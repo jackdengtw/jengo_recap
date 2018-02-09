@@ -4,7 +4,7 @@ import (
 	"strconv"
 	"time"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
@@ -54,7 +54,7 @@ func (u *GithubUser) ToMongoUser() (mongoUser *model.User) {
 	mongoUser.UpdatedAt = &timeNow
 	mongoUser.Auths = []model.Auth{
 		model.Auth{
-			AuthBase: api.AuthBase{
+			AuthBase: vo.AuthBase{
 				Id:          "u_github_" + strconv.Itoa(u.Id),
 				OriginId:    strconv.Itoa(u.Id),
 				Primary:     true,
@@ -64,13 +64,13 @@ func (u *GithubUser) ToMongoUser() (mongoUser *model.User) {
 				AvatarUrl:   u.AvatarUrl,
 				Locale:      u.Location,
 			},
-			AuthSourceId: api.AUTH_SOURCE_GITHUB,
+			AuthSourceId: vo.AUTH_SOURCE_GITHUB,
 			// Ignore token here
 		},
 	}
 	mongoUser.Scms = []model.Scm{
 		model.Scm{
-			ScmBase: api.ScmBase{
+			ScmBase: vo.ScmBase{
 				Id:          mongoUser.Id,
 				OriginId:    strconv.Itoa(u.Id),
 				DisplayName: u.Name,
@@ -81,8 +81,8 @@ func (u *GithubUser) ToMongoUser() (mongoUser *model.User) {
 				SyncedAt:    timeNow, //Todo: update synced time after update repo/project info from scm
 				BoundAt:     timeNow,
 			},
-			AuthSourceId: api.AUTH_SOURCE_GITHUB,
-			ScmSourceId:  api.AUTH_SOURCE_GITHUB,
+			AuthSourceId: vo.AUTH_SOURCE_GITHUB,
+			ScmSourceId:  vo.AUTH_SOURCE_GITHUB,
 			// Ignore token here
 		},
 	}

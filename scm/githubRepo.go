@@ -33,7 +33,7 @@ func (p *GithubRepo) CopyRepoMetaTo(repo *model.Repo) {
 	repo.Id = "p_github_" + strconv.Itoa(p.Id)
 	repo.RepoMeta.Name = &p.Name
 	repo.ScmName = "github"
-	repo.RepoMeta.OwnerIds = []string{"u_github_" + strconv.Itoa(p.Owner.Id)}
+	repo.OwnerIds = []string{"u_github_" + strconv.Itoa(p.Owner.Id)}
 	repo.RepoMeta.FullName = &p.FullName
 	repo.RepoMeta.HtmlUrl = &p.HtmlUrl
 	// repo.RepoMeta.CreatedAt = p.CreatedAt

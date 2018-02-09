@@ -171,7 +171,7 @@ var _ = Describe("Repo Mongo dao", func() {
 						return
 					}
 					err = rmdao.UpdateDynamicRepoInfo(
-						"id1", "failed", "build1", "branch1")
+						"id1", "branch1")
 					partialUpdated = true
 				})
 				It("Should return success", func() {
@@ -180,18 +180,14 @@ var _ = Describe("Repo Mongo dao", func() {
 				It("Should be able to get updated values", func() {
 					actual, err := rmdao.GetRepo("id1")
 					Expect(err).NotTo(HaveOccurred())
-					Expect(actual.State).To(Equal("failed"))
-					Expect(actual.LatestBuildId).To(Equal("build1"))
 					Expect(actual.Branches).To(ContainElement("branch1"))
 				})
 				It("Should be able to update a few of values", func() {
 					err = rmdao.UpdateDynamicRepoInfo(
-						"id1", "", "build2", "branch2")
+						"id1", "branch2")
 					Expect(err).NotTo(HaveOccurred())
 					actual, err := rmdao.GetRepo("id1")
 					Expect(err).NotTo(HaveOccurred())
-					Expect(actual.State).To(Equal("failed"))
-					Expect(actual.LatestBuildId).To(Equal("build2"))
 					Expect(actual.Branches).To(ContainElement("branch1"))
 					Expect(actual.Branches).To(ContainElement("branch2"))
 				})

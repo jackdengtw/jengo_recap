@@ -1,143 +1,100 @@
 package service
 
-/*
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"testing"
+import (
+	"strconv"
 
-	"bytes"
-	"encoding/json"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
+	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 
-	"github.com/qetuantuan/jengo_recap/api"
-	"github.com/qetuantuan/jengo_recap/dao"
+	_ "github.com/qetuantuan/jengo_recap/vo"
+	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/queue"
-*/
+)
 
-type mockProjectStoreClient struct {
+type mockEngineBuildDao_testEngineBuild struct {
+	B *model.Build
 }
 
-/*
-func (m *mockProjectStoreClient) InsertBuild(build *api.Build) (*http.Response, []byte, error) {
-	body, _ := json.Marshal(map[string]string{"build_id": "1234"})
-	resp := &http.Response{
-		Status:        "200 OK",
-		StatusCode:    200,
-		Proto:         "HTTP/1.1",
-		ProtoMajor:    1,
-		ProtoMinor:    1,
-		Body:          ioutil.NopCloser(bytes.NewBufferString(string(body))),
-		ContentLength: int64(len(body)),
-		Header:        make(http.Header, 0),
+func (m *mockEngineBuildDao_testEngineBuild) UpdateBuildProperties(string, map[string]interface{}) error {
+	return nil
+}
+
+func (m *mockEngineBuildDao_testEngineBuild) InsertBuild(build model.Build) (string, error) {
+	m.B = &build
+	m.B.Id = bson.NewObjectId().Hex()
+	return m.B.Id, nil
+}
+
+func (m *mockEngineBuildDao_testEngineBuild) ListBuilds(map[string]interface{}, int, int) (b model.Builds, err error) {
+	if m.B != nil {
+		b = append(b, *m.B)
+	} else {
+		err = mgo.ErrNotFound
 	}
-
-	return resp, body, nil
-}
-
-func (m *mockProjectStoreClient) PutLog(userId string, projectId string, buildId string, buildId string, buildLog string) (*http.Response, []byte, error) {
-	return &http.Response{}, nil, nil
-}
-
-func (m *mockProjectStoreClient) UpdateBuild(build *api.Build, buildId string) (*http.Response, []byte, error) {
-	return &http.Response{}, nil, nil
-}
-
-func (p *mockProjectStoreClient) UpdatePatchBuild(build *api.PatchBuild, buildId string) (*http.Response, []byte, error) {
-	return &http.Response{}, nil, nil
-}
-
-func (p *mockProjectStoreClient) GetProject(userId string, projectId string) (project api.Project, err error) {
 	return
 }
 
-func TestEngineBuildService_CreateBuild(t *testing.T) {
-	d, server, session := SetupMongo()
-	defer TearDown(d, server, session)
-
-	s := &EngineBuildService{&mockProjectStoreClient{}, &dao.BuildDao{GSession: session}, queue.NewNativeTaskQueue()}
-
-	// test CreateBuild
-	commit := api.PushEventCommit{}
-	repoId := 123
-	params := &api.EngineCreateBuildParams{
-		UserId:    "user_id",
-		ProjectId: "project_id",
-		Repo:      &api.PushEventRepository{ID: &repoId},
-		Commits:   []api.PushEventCommit{commit},
-	}
-	build, err := s.CreateBuild(params)
-	if err != nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_CreateBuild][CreateBuild] error in CreateBuild"))
-	}
-	if !checkBuildIsSame(build, params) {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_CreateBuild][CreateBuild] the build is not the same"))
-	}
-
-	dParams := &api.EngineDescribeBuildsParams{
-		UserId:    build.UserId,
-		ProjectId: build.EventId,
-	}
-
-	// test DescribeBuilds
-	buildsAct, err := s.DescribeBuilds(dParams)
-	if err != nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_CreateBuild][DescribeBuilds] error in DescribeBuilds"))
-	}
-	if len(buildsAct) != 1 {
-		t.Error(fmt.Printf("[TestEngineBuildService_CreateBuild][DescribeBuilds] the length of builds is not 1: %v", buildsAct))
-	}
-	if !checkBuildIsSame(&(buildsAct[0]), params) {
-		t.Error(fmt.Printf("[TestEngineBuildService_CreateBuild][DescribeBuilds] the user_id is %s, the project_id is %s", buildsAct[0].UserId, buildsAct[0].ProjectId))
-	}
-
-	// test DescribeBuild
-	buildAct, err := s.DescribeBuild(build.Id)
-	if err != nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_CreateBuild][DescribeBuild] error in DescribeBuild"))
-	}
-	if !checkBuildIsSame(buildAct, params) {
-		t.Error(fmt.Printf("[TestEngineBuildService_CreateBuild][DescribeBuild] the user_id is %s, the project_id is %s", buildAct.UserId, buildAct.ProjectId))
-	}
-}
-
-func checkBuildIsSame(build *api.Build, params *api.EngineCreateBuildParams) bool {
-	if build.ProjectId != params.ProjectId {
-		return false
-	} else if build.UserId != params.UserId {
-		return false
+func (m *mockEngineBuildDao_testEngineBuild) GetBuild(string) (b model.Build, err error) {
+	if m.B != nil {
+		b = *m.B
 	} else {
-		return true
+		err = mgo.ErrNotFound
 	}
+	return
 }
 
-func TestEngineBuildService_DescribeBuilds(t *testing.T) {
-	d, server, session := SetupMongo()
-	defer TearDown(d, server, session)
-
-	s := &EngineBuildService{&mockProjectStoreClient{}, &dao.BuildDao{GSession: session}, queue.NewNativeTaskQueue()}
-	p := &api.EngineDescribeBuildsParams{
-		ProjectId: "p_123456789_123456789",
-	}
-	builds, err := s.DescribeBuilds(p)
-	if err != nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_DescribeBuilds] error in DescribeBuilds"))
-	}
-	if len(builds) != 0 {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_DescribeBuilds] the length of builds is not 0"))
-	}
-}
-
-func TestEngineBuildService_DescribeBuild(t *testing.T) {
-	d, server, session := SetupMongo()
-	defer TearDown(d, server, session)
-
-	s := &EngineBuildService{&mockProjectStoreClient{}, &dao.BuildDao{GSession: session}, queue.NewNativeTaskQueue()}
-	build, err := s.DescribeBuild("build_123456789_123456789")
-	if err == nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_DescribeBuild] No error in DescribeBuild"))
-	}
-	if build != nil {
-		t.Error(fmt.Sprintf("[TestEngineBuildService_DescribeBuild] the build is not nil"))
-	}
-}
+/*
+	ListBuilds(p *model.EngineListBuildsParams) (model.Builds, error)
+	GetBuild(buildId string) (model.Build, error)
 */
+
+var _ = Describe("Test Engine Build Service", func() {
+	Describe("Create a build", func() {
+		var (
+			service *LocalEngineBuildService
+			repoId1 int = 123
+			buildId string
+			err     error
+		)
+		BeforeEach(func() {
+			service = &LocalEngineBuildService{
+				Queue: queue.NewNativeTaskQueue(),
+				Md:    &mockEngineBuildDao_testEngineBuild{},
+			}
+
+			buildId, err = service.CreateBuild(&model.EngineCreateBuildParams{
+				// RepoId:  "repo1",
+				UserId:  "user1",
+				EventId: "event1",
+				Repo: &model.PushEventRepository{
+					ID: &repoId1,
+				},
+				Commits: []model.PushEventCommit{
+					model.PushEventCommit{
+					// PushEventCommit: vo.PushEventCommit{},
+					},
+				},
+			})
+		})
+		It("Should return success", func() {
+			Expect(err).NotTo(HaveOccurred())
+		})
+		It("Should be able to get the build", func() {
+			build, err := service.GetBuild(buildId)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(build.RepoId).To(Equal(strconv.Itoa(repoId1)))
+			Expect(build.UserId).To(Equal("user1"))
+			Expect(*build.EventId).To(Equal("event1"))
+		})
+		It("Should be able to list the builds", func() {
+			builds, err := service.ListBuilds(&model.EngineListBuildsParams{
+				UserId: "user1",
+			})
+			Expect(err).NotTo(HaveOccurred())
+			Expect(len(builds)).To(Equal(1))
+			Expect(builds[0].RepoId).To(Equal(strconv.Itoa(repoId1)))
+		})
+	})
+})

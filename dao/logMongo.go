@@ -6,6 +6,13 @@ import (
 	"github.com/qetuantuan/jengo_recap/model"
 )
 
+type LogDao interface {
+	AddLog(logs []byte) (id string, err error)
+	GetLog(id string) (log model.BuildLog, err error)
+}
+
+var _ LogDao = &LogMongoDao{}
+
 type LogMongoDao struct {
 	MongoDao
 }
@@ -29,7 +36,7 @@ func (md *LogMongoDao) AddLog(logs []byte) (id string, err error) {
 	lc := session.DB(repoDbName).C(logCol)
 	oId := bson.NewObjectId()
 	id = oId.Hex()
-	err = lc.Insert(&model.BuildLog{Id: id, Content: string(logs)})
+	err = lc.Insert(&model.BuildLog{Id: id, Content: logs})
 	return
 }
 

@@ -4,19 +4,19 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/util"
 )
 
 type Auth struct {
-	api.AuthBase
+	vo.AuthBase
 	AuthSourceId string `bson:"auth_source_id"` // refer to AuthSource.Id
 	Token        []byte `bson:"token"`
 }
 
-func (a *Auth) ToApiAuth() *api.Auth {
-	auth := &api.Auth{
-		AuthBase: api.AuthBase{
+func (a *Auth) ToApiAuth() *vo.Auth {
+	auth := &vo.Auth{
+		AuthBase: vo.AuthBase{
 			Id:          a.Id,
 			OriginId:    a.OriginId,
 			Primary:     a.Primary,
@@ -26,7 +26,7 @@ func (a *Auth) ToApiAuth() *api.Auth {
 			AvatarUrl:   a.AvatarUrl,
 			Locale:      a.Locale,
 		},
-		AuthSource: api.AUTH_SOURCES[a.AuthSourceId],
+		AuthSource: vo.AUTH_SOURCES[a.AuthSourceId],
 		// Ignore token,
 	}
 	return auth
@@ -42,15 +42,15 @@ func (a *Auth) GetDecryptedToken(key string) string {
 }
 
 type Scm struct {
-	api.ScmBase
+	vo.ScmBase
 	AuthSourceId string `bson:"auth_source_id"` // refer to AuthSource.Id
 	ScmSourceId  string `bson:"scm_source_id"`  // refer to ScmSource.Id
 	Token        []byte `bson:"token"`
 }
 
-func (s *Scm) ToApiScm() *api.Scm {
-	scm := &api.Scm{
-		ScmBase: api.ScmBase{
+func (s *Scm) ToApiScm() *vo.Scm {
+	scm := &vo.Scm{
+		ScmBase: vo.ScmBase{
 			Id:          s.Id,
 			OriginId:    s.OriginId,
 			DisplayName: s.DisplayName,
@@ -61,8 +61,8 @@ func (s *Scm) ToApiScm() *api.Scm {
 			SyncedAt:    s.SyncedAt,
 			BoundAt:     s.BoundAt,
 		},
-		AuthSource: api.AUTH_SOURCES[s.AuthSourceId],
-		ScmSource:  api.SCM_SOURCES[s.ScmSourceId],
+		AuthSource: vo.AUTH_SOURCES[s.AuthSourceId],
+		ScmSource:  vo.SCM_SOURCES[s.ScmSourceId],
 		// Ignore Token,
 	}
 	return scm
@@ -106,8 +106,8 @@ func (u *User) SetTokenEncrypted(id string, key string, token string) (err error
 	return
 }
 
-func (u *User) ToApiUser() (*api.User02, error) {
-	user := &api.User02{
+func (u *User) ToApiUser() (*vo.User02, error) {
+	user := &vo.User02{
 		Id:        u.Id,
 		UpdatedAt: u.UpdatedAt,
 		CreatedAt: u.CreatedAt,

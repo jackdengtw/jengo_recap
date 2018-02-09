@@ -3,12 +3,12 @@ package model
 import (
 	"time"
 
-	"github.com/qetuantuan/jengo_recap/api"
+	"github.com/qetuantuan/jengo_recap/vo"
 )
 
 // PushEventCommit represents a git commit in a GitHub PushEvent.
 type PushEventCommit struct {
-	api.PushEventCommit
+	vo.PushEventCommit
 
 	// The following fields are only populated by Events API.
 	SHA *string `json:"sha,omitempty"`
@@ -19,24 +19,24 @@ type PushEventCommit struct {
 	Modified []string `json:"modified,omitempty"`
 }
 
-func (p *PushEventCommit) ToApiObj() *api.PushEventCommit {
+func (p *PushEventCommit) ToApiObj() *vo.PushEventCommit {
 	return &p.PushEventCommit
 }
 
-func NewPushEventCommit(p api.PushEventCommit) *PushEventCommit {
+func NewPushEventCommit(p vo.PushEventCommit) *PushEventCommit {
 	return &PushEventCommit{PushEventCommit: p}
 }
 
 type PushEventCommits []PushEventCommit
 
-func (ps *PushEventCommits) ToApiObj() (aps api.PushEventCommits) {
+func (ps *PushEventCommits) ToApiObj() (aps vo.PushEventCommits) {
 	for _, p := range *ps {
 		aps = append(aps, *p.ToApiObj())
 	}
 	return
 }
 
-func NewPushEventCommits(aps api.PushEventCommits) (ps PushEventCommits) {
+func NewPushEventCommits(aps vo.PushEventCommits) (ps PushEventCommits) {
 	for _, p := range aps {
 		ps = append(ps, *NewPushEventCommit(p))
 	}
