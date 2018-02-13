@@ -2,11 +2,11 @@ package service
 
 import (
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/util"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"gopkg.in/mgo.v2"
 )
 
@@ -26,8 +26,8 @@ type UserService interface {
 }
 
 type LocalUserService struct {
-	Md        dao.UserDao
-	GithubScm scm.Scm
+	Md  dao.UserDao
+	Scm scm.Scm
 }
 
 var _ UserService = &LocalUserService{}
@@ -57,7 +57,8 @@ func (u *LocalUserService) CreateUser(loginName string, auth string, token strin
 		return
 	} else {
 		if auth == vo.AUTH_SOURCE_GITHUB {
-			userScm, err1 := u.GithubScm.GetUser(token)
+			u.Scm.SetToken(token)
+			userScm, err1 := u.Scm.GetUser()
 			if err1 != nil {
 				glog.Errorf("failed, err when get user from scm", loginName, err1)
 				err = ScmError

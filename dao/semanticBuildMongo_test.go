@@ -119,6 +119,22 @@ var _ = Describe("Semantic Build Mongo dao", func() {
 						Expect(actuals[0].Branch).To(Equal(expected2.Branch))
 					})
 				})
+				Context("Get Sbuild with repo Ids", func() {
+					var actuals []model.SemanticBuild
+					BeforeEach(func() {
+						actuals, err = sbdao.GetSemanticBuildsByRepoIds(
+							[]string{"repo1"},
+						)
+					})
+					It("Should return success", func() {
+						Expect(err).NotTo(HaveOccurred())
+					})
+					It("Should have filtered Sbuild", func() {
+						Expect(len(actuals)).To(Equal(1))
+						Expect(actuals[0].RepoId).To(Equal("repo1"))
+					})
+				})
+
 			})
 			Context("Preparing build for Sbuild1", func() {
 				var (

@@ -52,6 +52,8 @@ type GithubScm struct {
 	scm string
 }
 
+var _ Scm = &GithubScm{}
+
 func NewGithubScm(hookUrl string) *GithubScm {
 	gs := GithubScm{scm: "github"}
 	gs.ApiLink = "https://vo.github.com"
@@ -59,14 +61,14 @@ func NewGithubScm(hookUrl string) *GithubScm {
 	return &gs
 }
 
-func (gs *GithubScm) GetUser(token string) (user GithubUser, err error) {
+func (gs *GithubScm) GetUser() (user GithubUser, err error) {
 	uri := fmt.Sprintf("%s/user", gs.ApiLink)
-	byte_response, _, err := gs.httpRequest("GET", uri, "", map[string]string{"Authorization": "token " + token})
+	byteResponse, _, err := gs.httpRequest("GET", uri, "", map[string]string{"Authorization": "token " + gs.Token})
 	if err != nil {
 		return
 	}
 
-	err = json.Unmarshal(byte_response, &user)
+	err = json.Unmarshal(byteResponse, &user)
 	return
 }
 
@@ -76,7 +78,7 @@ func (gs *GithubScm) SetGatewayHookUrl(gatewayHookUrl string) {
 
 func (gs *GithubScm) SetHook(RepoName string) (hook model.GithubHook, err error) {
 	hookConf := fmt.Sprintf(hookConfFormatString, WEBHOOKNAME, gs.HookURI)
-	uri := fmt.Sprintf("%s/repos/%s/%s/hooks", gs.ApiLink, gs.User, RepoName)
+	uri := fmt.Sprintf("%s/repos/%s/%s/hooks", gs.ApiLink, gs.UserName, RepoName)
 
 	byteResponses, _, err := gs.httpRequest(
 		"POST",

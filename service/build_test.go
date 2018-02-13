@@ -29,6 +29,10 @@ func (m *mockBuildDao_testBuild) GetSemanticBuilds(sbuildIds []string) (sbuilds 
 	return
 }
 
+func (m *mockBuildDao_testBuild) GetSemanticBuildsByRepoIds(repoIds []string) (sbuilds model.SemanticBuilds, err error) {
+	return
+}
+
 func (m *mockBuildDao_testBuild) GetSemanticBuildsByFilter(filter map[string]interface{}, limitCount, offset int) (sbuilds model.SemanticBuilds, err error) {
 	return
 }

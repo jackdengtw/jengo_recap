@@ -11,6 +11,7 @@ import (
 type SemanticBuildReader interface {
 	FindSemanticBuildByBranchCommit(repoId, commitId, branch string) (sbuild model.SemanticBuild, err error)
 	GetSemanticBuilds(sbuildIds []string) (sbuilds model.SemanticBuilds, err error)
+	GetSemanticBuildsByRepoIds(repoIds []string) (sbuilds model.SemanticBuilds, err error)
 	GetSemanticBuildsByFilter(filter map[string]interface{}, limitCount, offset int) (sbuilds model.SemanticBuilds, err error)
 	IsBuildExistInSemanticBuild(buildId, sBuildId string) (res bool, err error)
 }
@@ -99,6 +100,14 @@ func (md *SemanticBuildMongoDao) GetSemanticBuilds(sbuildIds []string) (sbuilds 
 	defer session.Close()
 	rc := session.DB(repoDbName).C(buildCol)
 	err = rc.Find(bson.M{"_id": bson.M{"$in": sbuildIds}}).All(&sbuilds)
+	return
+}
+
+func (md *SemanticBuildMongoDao) GetSemanticBuildsByRepoIds(repoIds []string) (sbuilds model.SemanticBuilds, err error) {
+	session := md.GSession.Copy()
+	defer session.Close()
+	rc := session.DB(repoDbName).C(buildCol)
+	err = rc.Find(bson.M{"repoid": bson.M{"$in": repoIds}}).Sort("repoid").All(&sbuilds)
 	return
 }
 

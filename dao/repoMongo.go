@@ -54,7 +54,7 @@ func (md *RepoMongoDao) UpsertRepoMeta(Repos []model.Repo, userId string) (err e
 	pc := session.DB(repoDbName).C(repoCol)
 	for i, repo := range Repos {
 		_, err = pc.UpsertId(repo.Id, bson.M{"$set": bson.M{"repometa": repo.RepoMeta},
-			"$addToSet": bson.M{"user_ids": userId}})
+			"$addToSet": bson.M{"owner_ids": userId}})
 		if err != nil {
 			err = BatchError{FailedIdx: i, RealErr: err}
 			glog.Warningf("insert Repo failed for %v %v", repo.Id, err)
@@ -68,7 +68,7 @@ func (md *RepoMongoDao) UpsertRepoMeta(Repos []model.Repo, userId string) (err e
 func (md *RepoMongoDao) GetRepos(userId string, limitCount, offset int) (Repos []model.Repo, err error) {
 	Repos, err = md.GetReposByFilter(
 		map[string]interface{}{
-			"user_ids": userId,
+			"owner_ids": userId,
 		}, limitCount, offset,
 	)
 	return
@@ -79,7 +79,7 @@ func (md *RepoMongoDao) UnlinkRepos(Repos []model.Repo, userId string) (err erro
 	defer session.Close()
 	pc := session.DB(repoDbName).C(repoCol)
 	for i, repo := range Repos {
-		err = pc.UpdateId(repo.Id, bson.M{"$pull": bson.M{"user_ids": userId}})
+		err = pc.UpdateId(repo.Id, bson.M{"$pull": bson.M{"owner_ids": userId}})
 		if err != nil {
 			err = BatchError{FailedIdx: i, RealErr: err}
 			glog.Warningf("Unlink Repo failed for %v %v", repo.Id, err)
@@ -118,7 +118,7 @@ func (md *RepoMongoDao) GetReposByFilter(filter map[string]interface{}, limitCou
 func (md *RepoMongoDao) GetReposByScms(userId string, scms []string) (Repos []model.Repo, err error) {
 	Repos, err = md.GetReposByFilter(
 		map[string]interface{}{
-			"user_ids":         userId,
+			"owner_ids":        userId,
 			"repometa.scmname": scms,
 		}, 0, 0,
 	)

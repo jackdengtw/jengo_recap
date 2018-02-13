@@ -59,8 +59,8 @@ var _ = Describe("Repo Mongo dao", func() {
 				Expect(len(actual)).To(Equal(2))
 				Expect(actual[0].Id).To(Equal("id1"))
 				Expect(actual[1].Id).To(Equal("id2"))
-				Expect(actual[0].UserIds).To(ContainElement("user1"))
-				Expect(actual[1].UserIds).To(ContainElement("user1"))
+				Expect(actual[0].OwnerIds).To(ContainElement("user1"))
+				Expect(actual[1].OwnerIds).To(ContainElement("user1"))
 			})
 		})
 		Describe("Testing a multiple repos flow", func() {
@@ -89,7 +89,7 @@ var _ = Describe("Repo Mongo dao", func() {
 					Expect(actual[0].Id).To(Equal("id1"))
 					Expect(actual[0].Enabled).To(Equal(false))
 					Expect(*actual[0].Name).To(Equal("updated1"))
-					Expect(actual[0].UserIds).To(ContainElement("user1"))
+					Expect(actual[0].OwnerIds).To(ContainElement("user1"))
 				})
 				Context("Unlinking Repos", func() {
 					BeforeEach(func() {
@@ -155,7 +155,7 @@ var _ = Describe("Repo Mongo dao", func() {
 			It("Should get repos by in_array filter", func() {
 				actual, err := rmdao.GetReposByFilter(
 					map[string]interface{}{
-						"user_ids": []string{"user1"},
+						"owner_ids": []string{"user1"},
 					}, 0, 0)
 				Expect(err).NotTo(HaveOccurred())
 				Expect(len(actual)).To(Equal(2))

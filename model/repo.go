@@ -22,8 +22,8 @@ type Repo struct {
 	Id      string `json:"id" bson:"_id"` // repoId in Jengo
 	Enabled bool   `json:"enabled"`
 
-	OwnerIds []string `json:"owner_ids"`                // userId in Jengo
-	UserIds  []string `json:"user_ids" bson:"user_ids"` // userId in Jengo
+	OwnerIds []string `json:"owner_ids" bson:"owner_ids"` // userId in Jengo
+	UserIds  []string `json:"user_ids" bson:"user_ids"`   // userId in Jengo
 	Branches []string `json:"branches"`
 
 	BuildIndex int

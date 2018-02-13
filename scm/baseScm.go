@@ -16,20 +16,24 @@ type Scm interface {
 	// Init(string)
 
 	// TODO: move to an abstract user when supporting another SCM
-	GetUser(token string) (user GithubUser, err error)
+	GetUser() (user GithubUser, err error)
 	SetHook(string) (model.GithubHook, error)
 	EditHook(string) (model.GithubHook, error)
+	GetHook(url string) (hook model.GithubHook, err error)
 	DeleteHook(string) error
 	GetRepoList() ([]model.Repo, error)
 	SetToken(string)
+	GetToken() string
+	SetUserName(string)
+	GetUserName() string
 	GetYmlContent(repo string, branch string) (content []byte, err error)
 }
 
 type baseScm struct {
-	ApiLink string
-	User    string
-	Token   string
-	HookURI string
+	ApiLink  string
+	UserName string
+	Token    string
+	HookURI  string
 }
 
 func (bs *baseScm) httpRequest(method string, uri string, data string, header map[string]string) (responseStrs []byte, statusCode int, err error) {
@@ -72,4 +76,15 @@ func (bs *baseScm) httpRequest(method string, uri string, data string, header ma
 
 func (bs *baseScm) SetToken(token string) {
 	bs.Token = token
+}
+
+func (bs *baseScm) GetToken() string {
+	return bs.Token
+}
+func (bs *baseScm) SetUserName(userName string) {
+	bs.UserName = userName
+}
+
+func (bs *baseScm) GetUserName() string {
+	return bs.UserName
 }

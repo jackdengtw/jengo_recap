@@ -7,10 +7,10 @@ import (
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 
-	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/util"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"gopkg.in/mgo.v2"
 )
 
@@ -60,7 +60,7 @@ type mockScm_testUser struct {
 	U *scm.GithubUser
 }
 
-func (s *mockScm_testUser) GetUser(token string) (user scm.GithubUser, err error) {
+func (s *mockScm_testUser) GetUser() (user scm.GithubUser, err error) {
 	if s.U != nil {
 		return *s.U, nil
 	} else {
@@ -69,11 +69,15 @@ func (s *mockScm_testUser) GetUser(token string) (user scm.GithubUser, err error
 	}
 }
 
-func (s *mockScm_testUser) SetHook(string) (hook model.GithubHook, err error)  { return }
-func (s *mockScm_testUser) EditHook(string) (hook model.GithubHook, err error) { return }
-func (s *mockScm_testUser) DeleteHook(string) error                            { return nil }
-func (s *mockScm_testUser) GetRepoList() ([]model.Repo, error)                 { return nil, nil }
-func (s *mockScm_testUser) SetToken(string)                                    { return }
+func (s *mockScm_testUser) GetHook(url string) (hook model.GithubHook, err error) { return }
+func (s *mockScm_testUser) SetHook(string) (hook model.GithubHook, err error)     { return }
+func (s *mockScm_testUser) EditHook(string) (hook model.GithubHook, err error)    { return }
+func (s *mockScm_testUser) DeleteHook(string) error                               { return nil }
+func (s *mockScm_testUser) GetRepoList() ([]model.Repo, error)                    { return nil, nil }
+func (s *mockScm_testUser) GetToken() (token string)                              { return }
+func (s *mockScm_testUser) SetToken(string)                                       { return }
+func (m *mockScm_testUser) SetUserName(string)                                    { return }
+func (m *mockScm_testUser) GetUserName() (token string)                           { return }
 func (s *mockScm_testUser) GetYmlContent(repo string, branch string) (content []byte, err error) {
 	return nil, nil
 }
@@ -134,8 +138,8 @@ var _ = Describe("Test User Service", func() {
 			}
 
 			service = &LocalUserService{
-				Md:        &mockUserDao_testUser{},
-				GithubScm: &mockScm_testUser{U: &scmUser},
+				Md:  &mockUserDao_testUser{},
+				Scm: &mockScm_testUser{U: &scmUser},
 			}
 
 		})

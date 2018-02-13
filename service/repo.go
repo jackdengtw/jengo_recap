@@ -1,14 +1,14 @@
 package service
 
 import (
-	"fmt"
+	"sort"
 
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/dao"
 	"github.com/qetuantuan/jengo_recap/model"
 	"github.com/qetuantuan/jengo_recap/scm"
 	"github.com/qetuantuan/jengo_recap/util"
+	"github.com/qetuantuan/jengo_recap/vo"
 	"gopkg.in/mgo.v2"
 )
 
@@ -29,10 +29,10 @@ type RepoService interface {
 }
 
 type LocalRepoService struct {
-	Md             dao.RepoDao
-	BuildMd        dao.SemanticBuildDao
-	GithubScm      *scm.GithubScm
-	HttpUserClient UserService
+	Md      dao.RepoDao
+	BuildMd dao.SemanticBuildReader
+	Scm     scm.Scm
+	Us      UserReader
 }
 
 var _ RepoService = &LocalRepoService{}
@@ -98,24 +98,25 @@ func syncRepoSet(n map[string]*model.Repo, o map[string]*model.Repo) (d, s, i []
 	}
 	return
 }
+
 func (p *LocalRepoService) UpdateRepos(userId string) (Repos []model.Repo, err error) {
-	user, err := p.HttpUserClient.GetUser(userId)
+	user, err := p.Us.GetUser(userId)
 	if err != nil {
 		glog.Errorf("update Repos: get user from us failed! user_id: %v, error: %v", userId, err)
 		return
 	}
 	auth := user.PrimaryAuth()
-	p.GithubScm.User = auth.LoginName
-	p.GithubScm.Token = auth.GetDecryptedToken(util.KeyCoder)
+	p.Scm.SetUserName(auth.LoginName)
+	p.Scm.SetToken(auth.GetDecryptedToken(util.KeyCoder))
 	// TODO:  if auth.AuthSource == 'github'
 	var repos []model.Repo
-	repos, err = p.GithubScm.GetRepoList()
+	repos, err = p.Scm.GetRepoList()
 	if err != nil {
-		glog.Error("get Repos from github for user failed", p.GithubScm.User)
+		glog.Error("get Repos from github for user failed", p.Scm.GetUserName())
 		err = ScmError
 		return
 	}
-	glog.Infof("get %v Repos from github for user %v", len(repos), p.GithubScm.User)
+	glog.Infof("get %v Repos from github for user %v", len(repos), p.Scm.GetUserName())
 
 	// get Repos in mongodb to update enable field
 	oldRepos, tmpErr := p.Md.GetRepos(userId, 0, 0)
@@ -184,22 +185,48 @@ func (p *LocalRepoService) GetReposByFilter(filter map[string]interface{}, limit
 		err = MongoError
 		return
 	}
-	for _, p := range repos {
-		Repos = append(Repos, *p.ToApiObj())
-	}
 	// TODO: query build dao for latest build id and latest state
 	//       add global cache layer to optimization later on
+	var repoIds []string
+	for _, r := range repos {
+		repoIds = append(repoIds, r.Id)
+	}
+	var sbuilds model.SemanticBuilds
+	// supposed sorted by repoid already
+	sbuilds, err = p.BuildMd.GetSemanticBuildsByRepoIds(repoIds)
+	if err != nil {
+		glog.Error("get Builds failed! error: ", err)
+		err = MongoError
+		return
+	}
+
+	sort.Sort(model.ById(repos))
+	j := 0
+	hasSBuild := len(sbuilds) > 0
+	for i := range repos {
+		r := repos[i].ToApiObj()
+		if hasSBuild && j < len(sbuilds) && sbuilds[j].RepoId == r.Id {
+			if len(sbuilds[j].Builds) > 0 {
+				latestBuild := sbuilds[j].Builds[len(sbuilds[j].Builds)-1]
+				r.LatestBuildId = latestBuild.Id
+				r.State = latestBuild.Result
+				j++
+			}
+		}
+		Repos = append(Repos, *r)
+	}
 	return
 }
+
 func (p *LocalRepoService) SwitchRepo(userId, RepoId string, enableStatus bool) (err error) {
-	user, err := p.HttpUserClient.GetUser(userId)
+	user, err := p.Us.GetUser(userId)
 	if err != nil {
 		glog.Warningf("Get user from us failed! user_id:%s, errpr:%v", userId, err)
 		return
 	}
 	auth := user.PrimaryAuth()
-	p.GithubScm.User = auth.LoginName
-	p.GithubScm.Token = auth.GetDecryptedToken(util.KeyCoder)
+	p.Scm.SetUserName(auth.LoginName)
+	p.Scm.SetToken(auth.GetDecryptedToken(util.KeyCoder))
 	// TODO:  if auth.AuthSource == 'github'
 	Repo, err := p.Md.GetRepo(RepoId)
 	if err != nil {
@@ -214,31 +241,31 @@ func (p *LocalRepoService) SwitchRepo(userId, RepoId string, enableStatus bool) 
 		}
 	}
 	if enableStatus {
-		_, err = p.GithubScm.SetHook(*Repo.Name)
+		_, err = p.Scm.SetHook(*Repo.Name)
 		if err != nil && err != scm.HookExistError {
 			glog.Warningf("enable hook failed! error:%v", err)
 			err = ScmError
 			return
 		}
 	} else { //do disable the hook
-		hook, errTmp := p.GithubScm.GetHook(*Repo.HooksUrl) //github exist this hook or not
+		hook, errTmp := p.Scm.GetHook(*Repo.HooksUrl) //github exist this hook or not
 		if errTmp != nil {
 			err = errTmp
 			if errTmp != scm.HookNonExistError { // err returned but not hooknonexist
 				glog.Warningf("get hook failed from github! error:%v", err)
 				err = ScmError
 				return
-			} else { //err is HookNonExistError, github no such hook
-				glog.Warning("found no such hook from github when delete hook")
-				// not return since we need to update Repo status
-				//i'd like to not return response with body
 			}
+			//err is HookNonExistError, github no such hook
+			glog.Warning("found no such hook from github when delete hook")
+			// not return since we need to update Repo status
+			//i'd like to not return response with body
 		} else { // found hook from github
 			glog.Info("found hook from github ,now begin to delete hook")
 
 			url := hook.Url
 
-			if err = p.GithubScm.DeleteHook(url); err != nil {
+			if err = p.Scm.DeleteHook(url); err != nil {
 				glog.Warningf("Delete hook failed! error:%v", err)
 				err = ScmError
 				return
@@ -254,6 +281,6 @@ func (p *LocalRepoService) SwitchRepo(userId, RepoId string, enableStatus bool) 
 		return
 	}
 	err = nil //in case of dao.HookNonExistError or dao.HookExistError
-	glog.Info(fmt.Sprintf("swith Repo %s to %s success", RepoId, enableStatus))
+	glog.Infof("swith Repo %v to %v success", RepoId, enableStatus)
 	return
 }
