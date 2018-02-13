@@ -19,7 +19,7 @@ type PushEventCommit struct {
 	Modified []string `json:"modified,omitempty"`
 }
 
-func (p *PushEventCommit) ToApiObj() *vo.PushEventCommit {
+func (p *PushEventCommit) ToViewObj() *vo.PushEventCommit {
 	return &p.PushEventCommit
 }
 
@@ -29,9 +29,9 @@ func NewPushEventCommit(p vo.PushEventCommit) *PushEventCommit {
 
 type PushEventCommits []PushEventCommit
 
-func (ps *PushEventCommits) ToApiObj() (aps vo.PushEventCommits) {
+func (ps *PushEventCommits) ToViewObj() (aps vo.PushEventCommits) {
 	for _, p := range *ps {
-		aps = append(aps, *p.ToApiObj())
+		aps = append(aps, *p.ToViewObj())
 	}
 	return
 }

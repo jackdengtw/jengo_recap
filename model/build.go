@@ -31,7 +31,7 @@ type Build struct {
 	Duration  *time.Duration `json:"duration,omitempty"`
 }
 
-func (b *Build) ToApiObj() *vo.Build {
+func (b *Build) ToViewObj() *vo.Build {
 	return &vo.Build{
 		Id:         b.Id,
 		Status:     b.Status,
@@ -41,8 +41,8 @@ func (b *Build) ToApiObj() *vo.Build {
 		Branch:     b.Branch,
 		UserId:     b.UserId,
 		EventId:    b.EventId,
-		Commits:    b.Commits.ToApiObj(),
-		HeadCommit: b.HeadCommit.ToApiObj(),
+		Commits:    b.Commits.ToViewObj(),
+		HeadCommit: b.HeadCommit.ToViewObj(),
 		LogUri:     b.LogUri,
 		UpdatedAt:  b.UpdatedAt,
 		CreatedAt:  b.CreatedAt,
@@ -75,9 +75,9 @@ func NewBuildFrom(b *vo.Build) *Build {
 // Builds
 type Builds []Build
 
-func (bs Builds) ToApiObj() (builds vo.Builds) {
+func (bs Builds) ToViewObj() (builds vo.Builds) {
 	for _, b := range bs {
-		builds = append(builds, *b.ToApiObj())
+		builds = append(builds, *b.ToViewObj())
 	}
 	return
 }
@@ -106,7 +106,7 @@ type SemanticBuild struct {
 	Builds Builds `json:"builds"`
 }
 
-func (b *SemanticBuild) ToApiObj() *vo.SemanticBuild {
+func (b *SemanticBuild) ToViewObj() *vo.SemanticBuild {
 	voObj := vo.SemanticBuild{
 		Id:       b.Id,
 		RepoId:   b.RepoId,
@@ -114,7 +114,7 @@ func (b *SemanticBuild) ToApiObj() *vo.SemanticBuild {
 		Branch:   b.Branch,
 		UserId:   b.UserId,
 		Numero:   b.Numero,
-		Builds:   b.Builds.ToApiObj(),
+		Builds:   b.Builds.ToViewObj(),
 	}
 	return &voObj
 }
@@ -136,9 +136,9 @@ func NewSemanticBuildFrom(b *vo.SemanticBuild) *SemanticBuild {
 // Semantic
 type SemanticBuilds []SemanticBuild
 
-func (bs SemanticBuilds) ToApiObj() (builds vo.SemanticBuilds) {
+func (bs SemanticBuilds) ToViewObj() (builds vo.SemanticBuilds) {
 	for _, b := range bs {
-		builds = append(builds, *b.ToApiObj())
+		builds = append(builds, *b.ToViewObj())
 	}
 	return
 }

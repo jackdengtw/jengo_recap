@@ -204,7 +204,7 @@ func (p *LocalRepoService) GetReposByFilter(filter map[string]interface{}, limit
 	j := 0
 	hasSBuild := len(sbuilds) > 0
 	for i := range repos {
-		r := repos[i].ToApiObj()
+		r := repos[i].ToViewObj()
 		if hasSBuild && j < len(sbuilds) && sbuilds[j].RepoId == r.Id {
 			if len(sbuilds[j].Builds) > 0 {
 				latestBuild := sbuilds[j].Builds[len(sbuilds[j].Builds)-1]

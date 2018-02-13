@@ -29,7 +29,7 @@ type Repo struct {
 	BuildIndex int
 }
 
-func (r *Repo) ToApiObj() *vo.Repo {
+func (r *Repo) ToViewObj() *vo.Repo {
 	return &vo.Repo{
 		RepoMeta: vo.RepoMeta{
 			OriginId: r.OriginId,

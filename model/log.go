@@ -6,7 +6,7 @@ import (
 
 type BuildLog vo.BuildLog
 
-func (r *BuildLog) ToApiObj() *vo.BuildLog {
+func (r *BuildLog) ToViewObj() *vo.BuildLog {
 	return (*vo.BuildLog)(r)
 }
 

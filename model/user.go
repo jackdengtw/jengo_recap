@@ -4,8 +4,8 @@ import (
 	"time"
 
 	"github.com/golang/glog"
-	"github.com/qetuantuan/jengo_recap/vo"
 	"github.com/qetuantuan/jengo_recap/util"
+	"github.com/qetuantuan/jengo_recap/vo"
 )
 
 type Auth struct {
